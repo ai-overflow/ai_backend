@@ -26,7 +26,7 @@ public class UsersResource {
     }
 
     @GetMapping("{id}")
-    public Optional<Users> getUser(@PathVariable Integer id) {
+    public Users getUser(@PathVariable Integer id) {
         return userRepository.findById(id);
     }
 }
