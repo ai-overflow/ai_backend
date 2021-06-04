@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/v1/user/")
+@RequestMapping("/api/v1/u/")
 public class UsersResource {
 
     private final UserRepository userRepository;
@@ -20,13 +20,13 @@ public class UsersResource {
         this.userRepository = userRepository;
     }
 
-    @GetMapping
+    @GetMapping("user")
     public List<Users> getAll() {
         return userRepository.findAll();
     }
 
-    @GetMapping("{id}")
-    public Users getUser(@PathVariable Integer id) {
+    @GetMapping("user/{id}")
+    public Optional<Users> getUser(@PathVariable Integer id) {
         return userRepository.findById(id);
     }
 }

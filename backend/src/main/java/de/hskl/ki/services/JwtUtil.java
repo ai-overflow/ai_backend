@@ -1,4 +1,4 @@
-package de.hskl.ki.util;
+package de.hskl.ki.services;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -14,8 +14,8 @@ import java.util.function.Function;
 @Service
 public class JwtUtil {
 
+    // TODO: Replace secret
     private final String SECRET_KEY = "secret";
-    private final Integer expirationDays = 365;
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
@@ -44,6 +44,8 @@ public class JwtUtil {
     }
 
     public String createToken(Map<String, Object> claims, String subject) {
+        int expirationDays = 365;
+
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(subject)

@@ -1,4 +1,4 @@
-package de.hskl.ki.models;
+package de.hskl.ki.models.auth;
 
 public class AuthenticationRequest {
 

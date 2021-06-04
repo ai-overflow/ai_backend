@@ -1,5 +1,6 @@
 package de.hskl.ki.db.document;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -8,6 +9,8 @@ public class Users {
     @Id
     private Integer id;
     private String username;
+
+    @JsonIgnore
     private String passwordHash;
 
     public Users(Integer id, String username, String passwordHash) {
