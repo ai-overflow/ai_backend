@@ -1,9 +1,9 @@
 <template>
   <v-app>
-    <v-app-bar color="primary" dark app>
+    <v-app-bar color="primary" dark app v-if="!showFrontPage">
       <v-toolbar-title>AI Administration</v-toolbar-title>
     </v-app-bar>
-    <navigation-bar />
+    <navigation-bar v-if="!showFrontPage" />
     <v-main>
       <v-container>
         <router-view />
@@ -24,5 +24,10 @@ export default Vue.extend({
   data: () => ({
     //
   }),
+  computed: {
+    showFrontPage() {
+      return ["landing", "login"].includes(this.$route.name);
+    },
+  },
 });
 </script>
