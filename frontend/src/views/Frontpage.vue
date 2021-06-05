@@ -46,7 +46,16 @@ export default Vue.extend({
       };
 
       this.loginAction(loginRequest).then(() => {
-        console.log("ok!");
+        if (this.$route.query.redirectTo) {
+          this.$router.push(this.$route.query.redirectTo);
+        } else {
+          this.$router.push("/Home").catch((err) => {
+            this.$log.error(err.message);
+          });
+        }
+      })
+      .catch((err) => {
+          console.log(err);
       });
     },
   },

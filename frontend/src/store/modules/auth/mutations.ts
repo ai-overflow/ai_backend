@@ -17,3 +17,7 @@ export const logout = (state: stateType) => {
     localStorage.removeItem('authToken');
     //localStorage.removeItem('user');
 };
+
+export const loginFailure = (state: stateType) => {
+    logout(state);
+};

@@ -1,5 +1,6 @@
 package de.hskl.ki.services;
 
+import de.hskl.ki.models.auth.AuthenticationResponse;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -16,6 +17,7 @@ public class JwtUtil {
 
     // TODO: Replace secret
     private final String SECRET_KEY = "secret";
+    public static final long EXPIRATION_DAYS = 365;
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
@@ -38,21 +40,23 @@ public class JwtUtil {
         return extractExpiration(token).before(new Date());
     }
 
-    public String generateToken(UserDetails userDetails) {
+    public AuthenticationResponse generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
         return createToken(claims, userDetails.getUsername());
     }
 
-    public String createToken(Map<String, Object> claims, String subject) {
-        int expirationDays = 365;
+    public AuthenticationResponse createToken(Map<String, Object> claims, String subject) {
 
-        return Jwts.builder()
+        var expirationDate = new Date(System.currentTimeMillis() + EXPIRATION_DAYS * 24 * 60 * 60 * 1000);
+        var token = Jwts.builder()
                 .setClaims(claims)
                 .setSubject(subject)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + expirationDays * 24 * 60 * 60 * 1000))
+                .setExpiration(expirationDate)
                 .signWith(SignatureAlgorithm.HS512, SECRET_KEY)
                 .compact();
+
+        return new AuthenticationResponse(token, expirationDate);
     }
 
     public Boolean validateToken(String token, UserDetails userDetails) {

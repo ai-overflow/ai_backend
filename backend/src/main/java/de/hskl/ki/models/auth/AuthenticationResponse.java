@@ -1,13 +1,21 @@
 package de.hskl.ki.models.auth;
 
-public class AuthenticationResponse {
-    private final String jwt;
+import java.util.Date;
 
-    public AuthenticationResponse(String jwt) {
-        this.jwt = jwt;
+public class AuthenticationResponse {
+    private final String accessToken;
+    private final Date tokenExpiration;
+
+    public AuthenticationResponse(String accessToken, Date tokenExpiration) {
+        this.accessToken = accessToken;
+        this.tokenExpiration = tokenExpiration;
     }
 
-    public String getJwt() {
-        return jwt;
+    public String getAccessToken() {
+        return accessToken;
+    }
+
+    public Date getTokenExpiration() {
+        return tokenExpiration;
     }
 }
