@@ -1,5 +1,7 @@
 package de.hskl.ki.resource;
 
+import de.hskl.ki.db.document.Projects;
+import de.hskl.ki.db.repository.ProjectRepository;
 import de.hskl.ki.models.git.GitCreationRequest;
 import de.hskl.ki.models.git.GitCreationResponse;
 import de.hskl.ki.services.interfaces.StorageService;
@@ -31,30 +33,37 @@ public class GitResource {
     @Autowired
     StorageService projectStorageService;
 
+    @Autowired
+    private ProjectRepository projectRepository;
+
     @PostMapping
     public ResponseEntity<?> cloneRepo(@RequestBody GitCreationRequest repo) throws GitAPIException {
         Optional<Path> dir = projectStorageService.generateStorageFolder();
-        if(dir.isPresent()) {
-            cloneRepository(repo.getRepoUrl(), dir.get());
+        if (dir.isPresent()) {
+            var projectInfo = cloneRepository(repo.getRepoUrl(), dir.get());
             deleteGitHistory(dir.get());
 
-            return ResponseEntity.ok(new GitCreationResponse(dir.get().toString()));
+            return ResponseEntity.ok(projectInfo);
         }
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .build();
     }
 
-    private void cloneRepository(String repoUrl, Path dir) throws GitAPIException {
+    private Projects cloneRepository(String repoUrl, Path dir) throws GitAPIException {
         Git git = Git.cloneRepository()
                 .setURI(repoUrl)
                 .setDirectory(dir.toFile())
                 .call();
         git.getRepository().close();
         git.close();
+
+        var projectInfo = new Projects(String.valueOf(dir), repoUrl);
+        projectRepository.save(projectInfo);
+        return projectInfo;
+        // TODO: Cleanup if anything fails
     }
 
-    //TODO: This doesn't work
     private void deleteGitHistory(Path dir) {
         try {
             FileUtils.deleteDirectory(new File(String.valueOf(dir.resolve(".git"))));

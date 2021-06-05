@@ -7,23 +7,23 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document
 public class Users {
     @Id
-    private Integer id;
+    private String id;
     private String username;
 
     @JsonIgnore
     private String passwordHash;
 
-    public Users(Integer id, String username, String passwordHash) {
+    public Users(String id, String username, String passwordHash) {
         this.id = id;
         this.username = username;
         this.passwordHash = passwordHash;
     }
 
-    public Integer getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(String id) {
         this.id = id;
     }
 
