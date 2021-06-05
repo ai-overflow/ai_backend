@@ -4,11 +4,11 @@ import store from '@/store/index';
 
 class AuthService {
 
-    private readonly API_PATH = 'api/v1/a/authenticate';
+    private static readonly API_PATH = 'api/v1/a/authenticate';
 
     public login(loginRequest: { username: string, password: string }, options?: any) {
         return axios
-            .post(this.API_PATH, loginRequest, parseOptionsToAxiosConfig(options))
+            .post(AuthService.API_PATH, loginRequest, parseOptionsToAxiosConfig(options))
             .then(response => {
                 //JwtResponse
                 response.data.tokenExpiration = new Date(response.data.tokenExpiration);
@@ -23,6 +23,16 @@ class AuthService {
         } else {
             return '';
         }
+    }
+
+    public refreshToken(options?: any) {
+        return axios
+            .get(AuthService.API_PATH + 'refreshToken', parseOptionsToAxiosConfig(options))
+            .then(response => {
+                //JwtResponse
+                response.data.tokenExpiration = new Date(response.data.tokenExpiration);
+                return response.data;
+            });
     }
 }
 

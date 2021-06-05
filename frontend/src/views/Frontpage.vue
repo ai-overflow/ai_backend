@@ -50,7 +50,7 @@ export default Vue.extend({
           this.$router.push(this.$route.query.redirectTo);
         } else {
           this.$router.push("/Home").catch((err) => {
-            this.$log.error(err.message);
+            console.log(err.message);
           });
         }
       })
