@@ -83,6 +83,11 @@
             <artifactId>org.eclipse.jgit</artifactId>
             <version>5.11.1.202105131744-r</version>
         </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-yaml</artifactId>
+            <version>2.12.3</version>
+        </dependency>
     </dependencies>
 
     <build>

@@ -1,6 +1,7 @@
 package de.hskl.ki.db.document;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import de.hskl.ki.models.yaml.ConfigDLYaml;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -15,6 +16,7 @@ public class Projects {
     private String projectPath;
     private Date creationDate = new Date(System.currentTimeMillis());
     private String gitUrl;
+    private ConfigDLYaml yaml;
 
     public Projects(String projectPath, Date creationDate, String gitUrl) {
         this.projectPath = projectPath;
@@ -25,6 +27,13 @@ public class Projects {
     public Projects(String projectPath, String gitUrl) {
         this.projectPath = projectPath;
         this.gitUrl = gitUrl;
+    }
+
+    public Projects(String projectPath, Date creationDate, String gitUrl, ConfigDLYaml yaml) {
+        this.projectPath = projectPath;
+        this.creationDate = creationDate;
+        this.gitUrl = gitUrl;
+        this.yaml = yaml;
     }
 
     public Projects() {
@@ -60,5 +69,13 @@ public class Projects {
 
     public void setGitUrl(String gitUrl) {
         this.gitUrl = gitUrl;
+    }
+
+    public ConfigDLYaml getYaml() {
+        return yaml;
+    }
+
+    public void setYaml(ConfigDLYaml yaml) {
+        this.yaml = yaml;
     }
 }
