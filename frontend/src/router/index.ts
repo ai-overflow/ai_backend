@@ -7,7 +7,6 @@ import store from '../store/index';
 Vue.use(VueRouter)
 
 function checkAuthentification<V extends Vue>(to: Route, from: Route, next: NavigationGuardNext<V>) {
-  console.log(store.getters);
   if (store.getters['auth/isLoggedIn']) {
     next()
   } else {
@@ -37,22 +36,29 @@ export const routes: Array<RouteConfig> = [
     beforeEnter: checkAuthentification
   },
   {
-    path: '/projects',
-    name: 'Projects',
-    component: () => import(/* webpackChunkName: "about" */ '../views/Projects.vue'),
+    path: '/pages',
+    name: 'Pages',
+    component: () => import(/* webpackChunkName: "about" */ '../views/Pages.vue'),
+    beforeEnter: checkAuthentification,
     meta: {
       icon: "mdi-book-open-page-variant",
       showInNav: true
     }
   },
   {
+    path: '/createPage',
+    name: 'Create Page',
+    component: () => import(/* webpackChunkName: "about" */ '../views/CreatePage.vue'),
+    beforeEnter: checkAuthentification,
+    meta: {
+      showInNav: false
+    }
+  },
+  {
     path: '/Login',
     name: 'login',
-    // route level code-splitting
-    // this generates a separate chunk (login.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
     component: Frontpage,
-    //beforeEnter: redirectIfAuthenticated,
+    beforeEnter: redirectIfAuthenticated,
     meta: {
       showInNav: false
     }

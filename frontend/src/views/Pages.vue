@@ -1,14 +1,14 @@
 <template>
   <v-card class="ma-4 pa-4">
-    <h2>Projekte</h2>
+    <h2>Seiten</h2>
     <v-container>
-      <v-btn color="primary" to="/create" small>
+      <v-btn color="primary" to="/createPage" small>
         <v-icon dark left> mdi-book-plus-multiple </v-icon>
         Hinzufügen
       </v-btn>
     </v-container>
     <v-container>
-      <span v-if="items.length === 0">Keine Projekte vorhanden</span>
+      <span v-if="items.length === 0">Keine Seite vorhanden</span>
       <v-list two-line>
         <v-list-item-group
           v-model="selected"
@@ -17,13 +17,13 @@
         >
           <template v-for="(item, index) in items">
             <v-list-item
-              :key="item.project_name + index"
-              :to="'/project/' + index"
+              :key="item.page_name + index"
+              :to="'/page/' + index"
             >
               <template v-slot:default="{ active }">
                 <v-list-item-content>
                   <v-list-item-title
-                    v-text="item.project_name"
+                    v-text="item.page_name"
                   ></v-list-item-title>
 
                   <v-list-item-subtitle class="text--primary">{{

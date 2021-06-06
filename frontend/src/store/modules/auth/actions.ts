@@ -31,4 +31,5 @@ export const refreshToken = ({ commit }: any, options: any) => {
 
 export const logout = ({ commit }: any) => {
     commit('logout');
+    console.log("logout")
 };

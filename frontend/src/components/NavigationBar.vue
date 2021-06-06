@@ -32,7 +32,7 @@ import { routes } from "@/router/index";
 
 export default {
   created() {
-    console.log("ok", routes)
+    //console.log("ok", routes)
   },
   data() {
     return {
