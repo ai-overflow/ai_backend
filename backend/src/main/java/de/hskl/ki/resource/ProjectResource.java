@@ -27,7 +27,7 @@ public class ProjectResource {
         return projectRepository.findAll();
     }
 
-    @PostMapping
+    @PostMapping("project")
     public ResponseEntity<?> cloneRepo(@RequestBody GitCreationRequest repo) throws GitAPIException, IOException {
         var gitServiceResponse = gitService.generateProject(repo);
         if (gitServiceResponse.isPresent()) {
@@ -38,9 +38,9 @@ public class ProjectResource {
                 .build();
     }
 
-    @DeleteMapping("{id}")
-    public ResponseEntity<?> deleteRepo(@PathVariable Integer id) {
-        System.out.println("TODO: Delete Element: " + id);
+    @DeleteMapping("project/{id}")
+    public ResponseEntity<?> deleteRepo(@PathVariable String id) {
+        gitService.deleteProject(id);
         return ResponseEntity.ok("ok");
     }
 }

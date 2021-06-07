@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,6 +42,7 @@ public class GitService {
                 deleteGitHistory(projectDir);
                 var config = yamlReader.read(projectDir);
                 projectInfo.setYaml(config);
+
                 projectRepository.save(projectInfo);
 
                 return Optional.of(projectInfo);
@@ -83,5 +85,17 @@ public class GitService {
             e.printStackTrace();
         }
         return latestCommit;
+    }
+
+    public boolean deleteProject(String projectId) {
+        Projects project = projectRepository.getProjectById(projectId);
+        Path p = Paths.get(project.getProjectPath());
+        try {
+            FileUtils.deleteDirectory(p.toFile());
+            projectRepository.delete(project);
+        } catch (IOException e) {
+            return false;
+        }
+        return true;
     }
 }

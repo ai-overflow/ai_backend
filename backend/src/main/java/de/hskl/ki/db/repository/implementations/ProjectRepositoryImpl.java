@@ -18,4 +18,9 @@ public class ProjectRepositoryImpl implements CustomProjectRepository {
     public List<Projects> getProjectByUser(String userName) {
         return mongoOperations.find(Query.query(Criteria.where("username").is(userName)), Projects.class, COLLECTION_NAME);
     }
+
+    @Override
+    public Projects getProjectById(String id) {
+        return mongoOperations.findOne(Query.query(Criteria.where("id").is(id)), Projects.class, COLLECTION_NAME);
+    }
 }

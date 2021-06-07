@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface CustomProjectRepository {
     List<Projects> getProjectByUser(String username);
+
+    Projects getProjectById(String id);
 }
