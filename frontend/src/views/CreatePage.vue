@@ -58,10 +58,12 @@
 
 <script>
 import ProjectService from "@/service/ProjectService";
+import dayjs from "dayjs";
 
 export default {
   data() {
     return {
+      descriptionLimit: 60,
       page: {
         description: "",
         title: "",
@@ -80,7 +82,17 @@ export default {
   },
   computed: {
     activeProjects() {
-      return this.projectEntries.map(e => e.yaml.name);
+      return this.projectEntries.map((e) => {
+        const Description =
+          (e.yaml.name.length > this.descriptionLimit
+            ? e.yaml.name.slice(0, this.descriptionLimit) + "..."
+            : e.yaml.name) +
+          " (" +
+          dayjs(e.creationDate).format("DD.MM.YYYY, HH:mm") +
+          ")";
+
+        return Object.assign({}, e, { Description });
+      });
     },
   },
   watch: {

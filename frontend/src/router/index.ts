@@ -55,6 +55,16 @@ export const routes: Array<RouteConfig> = [
     }
   },
   {
+    path: '/projects',
+    name: 'Projects',
+    component: () => import(/* webpackChunkName: "about" */ '../views/Projects.vue'),
+    beforeEnter: checkAuthentification,
+    meta: {
+      icon: "mdi-view-list",
+      showInNav: true
+    }
+  },
+  {
     path: '/Login',
     name: 'login',
     component: Frontpage,
