@@ -37,13 +37,19 @@
             md="6"
             lg="4"
           >
-            <v-card>
+            <v-card :disabled="!!item.disabled">
               <v-card-title class="subheading font-weight-bold">
                 {{ item.yaml.name }}
                 <v-spacer></v-spacer>
-                <v-btn @click="deleteProject(item.id)" small plain icon color="red">
-                <v-icon>mdi-trash-can</v-icon>
-              </v-btn>
+                <v-btn
+                  @click="deleteProject(item.id)"
+                  small
+                  plain
+                  icon
+                  color="red"
+                >
+                  <v-icon>mdi-trash-can</v-icon>
+                </v-btn>
               </v-card-title>
 
               <v-divider></v-divider>
@@ -148,12 +154,24 @@ export default {
       this.itemsPerPage = number;
     },
     convertDate(date) {
-      return dayjs(date).format("DD.MM.YYYY");
+      return dayjs(date).format("DD.MM.YYYY, HH:mm");
     },
     deleteProject(id) {
-        console.log("delete", id);
-        ProjectService.deleteProject(id);
-    }
+      let itemIndex = this.items.findIndex((e) => e.id === id);
+
+      let newVal = this.items[itemIndex];
+      newVal.disabled = true;
+
+      this.$set(this.items, itemIndex, newVal);
+      ProjectService.deleteProject(id)
+        .then(() => {
+          this.items = this.items.filter((e) => e.id !== id);
+        })
+        .catch((e) => {
+          newVal.disabled = false;
+          this.$set(this.items, itemIndex, newVal);
+        });
+    },
   },
 };
 </script>

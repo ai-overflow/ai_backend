@@ -12,7 +12,6 @@ import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -35,19 +34,23 @@ public class GitService {
     private SimpleDLYamlReader yamlReader;
 
     public Optional<Projects> generateProject(GitCreationRequest repo) throws GitAPIException, IOException {
-            Optional<Path> dir = projectStorageService.generateStorageFolder();
-            if (dir.isPresent()) {
-                var projectDir = dir.get();
-                var projectInfo = cloneRepository(repo.getRepoUrl(), projectDir);
-                deleteGitHistory(projectDir);
+        Optional<Path> dir = projectStorageService.generateStorageFolder();
+        if (dir.isPresent()) {
+            var projectDir = dir.get();
+            var projectInfo = cloneRepository(repo.getRepoUrl(), projectDir);
+            deleteGitHistory(projectDir);
+            try {
                 var config = yamlReader.read(projectDir);
                 projectInfo.setYaml(config);
 
                 projectRepository.save(projectInfo);
-
-                return Optional.of(projectInfo);
+            } catch (Exception e) {
+                FileUtils.deleteDirectory(projectDir.toFile());
+                throw e;
             }
-            return Optional.empty();
+            return Optional.of(projectInfo);
+        }
+        return Optional.empty();
     }
 
     private Projects cloneRepository(String repoUrl, Path dir) throws GitAPIException {
@@ -55,11 +58,10 @@ public class GitService {
                 .setURI(repoUrl)
                 .setDirectory(dir.toFile())
                 .call();
-        git.getRepository().close();
+
         git.close();
 
         return new Projects(String.valueOf(dir), repoUrl);
-        // TODO: Cleanup if anything fails
     }
 
     private void deleteGitHistory(Path dir) {

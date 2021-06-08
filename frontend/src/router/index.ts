@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import VueRouter, { NavigationGuardNext, Route, RouteConfig } from 'vue-router'
 import Home from '../views/Home.vue'
-import Frontpage from '../views/Frontpage.vue'
+import Frontpage from '../views/Frontpage.vue';
 import store from '../store/index';
 
 Vue.use(VueRouter)
@@ -62,6 +62,15 @@ export const routes: Array<RouteConfig> = [
     meta: {
       icon: "mdi-view-list",
       showInNav: true
+    }
+  },
+  {
+    path: '/createProject',
+    name: 'Create Project',
+    component: () => import(/* webpackChunkName: "about" */ '../views/CreateProject.vue'),
+    beforeEnter: checkAuthentification,
+    meta: {
+      showInNav: false
     }
   },
   {

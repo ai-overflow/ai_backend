@@ -14,6 +14,13 @@ class ProjectService {
         return axios
             .delete(ProjectService.API_PATH + "project/" + id, parseOptionsToAxiosConfig(options));
     }
+
+    public addProject(url: string, options?: any) {
+        options = {...options, repoUrl: url};
+
+        return axios
+            .post(ProjectService.API_PATH + "project/", parseOptionsToAxiosConfig(options));
+    }
 }
 
 export default new ProjectService();
