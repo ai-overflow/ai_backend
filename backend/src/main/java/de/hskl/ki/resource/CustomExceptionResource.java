@@ -1,7 +1,6 @@
 package de.hskl.ki.resource;
 
 import de.hskl.ki.models.ErrorDTO;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ExceptionHandler;

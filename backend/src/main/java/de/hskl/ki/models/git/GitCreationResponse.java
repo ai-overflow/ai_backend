@@ -1,7 +1,5 @@
 package de.hskl.ki.models.git;
 
-import java.util.Date;
-
 public class GitCreationResponse {
 
     private String repoPath;

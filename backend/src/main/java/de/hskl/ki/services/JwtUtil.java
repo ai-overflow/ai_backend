@@ -15,9 +15,9 @@ import java.util.function.Function;
 @Service
 public class JwtUtil {
 
+    public static final long EXPIRATION_DAYS = 365;
     // TODO: Replace secret
     private final String SECRET_KEY = "secret";
-    public static final long EXPIRATION_DAYS = 365;
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);

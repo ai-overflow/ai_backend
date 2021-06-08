@@ -5,7 +5,7 @@ import java.util.Date;
 public class AuthenticationResponse {
     private final String accessToken;
     private final Date tokenExpiration;
-    private String tokenType = "Bearer";
+    private final String tokenType = "Bearer";
 
     public AuthenticationResponse(String accessToken, Date tokenExpiration) {
         this.accessToken = accessToken;
