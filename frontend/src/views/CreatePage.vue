@@ -108,6 +108,19 @@ import dayjs from "dayjs";
 import { intersection } from "@/utility/utils";
 
 export default {
+  created() {
+    if (this.$route.params.id) {
+      this.loadProjects()
+        .then(() => PageService.getPage(this.$route.params.id))
+        .then((e) => {
+          this.page.title = e.data.title;
+          this.page.description = e.data.description;
+          this.page.active = e.data.active;
+          this.page.projects = e.data.selectedProjects;
+          this.page.topLevelInput = e.data.topLevelInput;
+        });
+    }
+  },
   data() {
     return {
       descriptionLimit: 60,
@@ -126,15 +139,19 @@ export default {
   },
   methods: {
     submitPage() {
-      PageService.addPage({
-        title: this.page.title,
-        description: this.page.description,
-        active: this.page.active,
-        topLevelInput: Object.assign({}, this.page.topLevelInput),
-        selectedProjects: this.page.projects.map((e) => e.id),
-      }).then((e) => {
-        console.log("done");
-      });
+      if (this.$route.params.id) {
+        console.log("TODO: update page");
+      } else {
+        PageService.addPage({
+          title: this.page.title,
+          description: this.page.description,
+          active: this.page.active,
+          topLevelInput: Object.assign({}, this.page.topLevelInput),
+          selectedProjects: this.page.projects.map((e) => e.id),
+        }).then(() => {
+          console.log("done");
+        });
+      }
     },
     selectTopLevel(inputType) {
       let valueChangeTo = undefined;
@@ -162,6 +179,19 @@ export default {
         ? "primary"
         : "secondary";
     },
+    loadProjects() {
+      this.projectsLoading = true;
+      // Lazily load input items
+      return ProjectService.getAllProjects()
+        .then((response) => {
+          this.projectEntries = response.data;
+
+          for (const dbObj of Object.values(response.data)) {
+            this.$set(this.page.topLevelInput, dbObj.id, []);
+          }
+        })
+        .finally(() => (this.projectsLoading = false));
+    },
   },
   computed: {
     activeProjects() {
@@ -186,24 +216,13 @@ export default {
     },
   },
   watch: {
-    searchProject(value) {
+    searchProject() {
       // Items have already been loaded
       if (this.page.projects.length > 0) return;
 
       if (this.projectsLoading) return;
 
-      this.projectsLoading = true;
-
-      // Lazily load input items
-      ProjectService.getAllProjects()
-        .then((response) => {
-          this.projectEntries = response.data;
-
-          for (const dbObj of Object.values(response.data)) {
-            this.$set(this.page.topLevelInput, dbObj.id, []);
-          }
-        })
-        .finally(() => (this.projectsLoading = false));
+      this.loadProjects();
     },
   },
 };

@@ -18,6 +18,11 @@ class PageService {
             .get(PageService.API_PATH + "page/", parseOptionsToAxiosConfig(options));
     }
 
+    public getPage(id: string, options?: any) {
+        return axios
+            .get(PageService.API_PATH + "page/" + id, parseOptionsToAxiosConfig(options));
+    }
+
     public deletePage(id: string, options?: any) {
         return axios
             .delete(PageService.API_PATH + "page/" + id, parseOptionsToAxiosConfig(options));

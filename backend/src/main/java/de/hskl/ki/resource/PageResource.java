@@ -30,6 +30,11 @@ public class PageResource {
         return pageRepository.findAll();
     }
 
+    @GetMapping("page/{id}")
+    public Page getPage(@PathVariable String id) {
+        return pageRepository.getPageById(id);
+    }
+
     @PostMapping("page")
     public ResponseEntity<?> cloneRepo(@RequestBody PageCreationRequest page) {
         Page p = new Page(page);

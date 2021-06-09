@@ -46,6 +46,15 @@ export const routes: Array<RouteConfig> = [
     }
   },
   {
+    path: '/page/:id',
+    name: 'Pages',
+    component: () => import(/* webpackChunkName: "about" */ '../views/CreatePage.vue'),
+    beforeEnter: checkAuthentification,
+    meta: {
+      showInNav: false
+    }
+  },
+  {
     path: '/createPage',
     name: 'Create Page',
     component: () => import(/* webpackChunkName: "about" */ '../views/CreatePage.vue'),
