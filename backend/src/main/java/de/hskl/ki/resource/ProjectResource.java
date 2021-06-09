@@ -1,6 +1,6 @@
 package de.hskl.ki.resource;
 
-import de.hskl.ki.db.document.Projects;
+import de.hskl.ki.db.document.Project;
 import de.hskl.ki.db.repository.ProjectRepository;
 import de.hskl.ki.models.git.GitCreationRequest;
 import de.hskl.ki.services.GitService;
@@ -23,7 +23,7 @@ public class ProjectResource {
     private ProjectRepository projectRepository;
 
     @GetMapping("project")
-    public List<Projects> getAll() {
+    public List<Project> getAll() {
         return projectRepository.findAll();
     }
 

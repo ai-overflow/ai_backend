@@ -1,11 +1,11 @@
 package de.hskl.ki.db.repository.interfaces;
 
-import de.hskl.ki.db.document.Projects;
+import de.hskl.ki.db.document.Project;
 
 import java.util.List;
 
 public interface CustomProjectRepository {
-    List<Projects> getProjectByUser(String username);
+    List<Project> getProjectByUser(String username);
 
-    Projects getProjectById(String id);
+    Project getProjectById(String id);
 }

@@ -1,15 +1,13 @@
 package de.hskl.ki.db.document;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import de.hskl.ki.models.yaml.ConfigDLYaml;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.nio.file.Path;
 import java.util.Date;
 
 @Document
-public class Projects {
+public class Project {
     //TODO: CreateDate, Username,
     @Id
     private String id;
@@ -18,25 +16,25 @@ public class Projects {
     private String gitUrl;
     private ConfigDLYaml yaml;
 
-    public Projects(String projectPath, Date creationDate, String gitUrl) {
+    public Project(String projectPath, Date creationDate, String gitUrl) {
         this.projectPath = projectPath;
         this.creationDate = creationDate;
         this.gitUrl = gitUrl;
     }
 
-    public Projects(String projectPath, String gitUrl) {
+    public Project(String projectPath, String gitUrl) {
         this.projectPath = projectPath;
         this.gitUrl = gitUrl;
     }
 
-    public Projects(String projectPath, Date creationDate, String gitUrl, ConfigDLYaml yaml) {
+    public Project(String projectPath, Date creationDate, String gitUrl, ConfigDLYaml yaml) {
         this.projectPath = projectPath;
         this.creationDate = creationDate;
         this.gitUrl = gitUrl;
         this.yaml = yaml;
     }
 
-    public Projects() {
+    public Project() {
     }
 
     public String getId() {

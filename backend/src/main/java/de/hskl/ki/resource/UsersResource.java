@@ -1,6 +1,6 @@
 package de.hskl.ki.resource;
 
-import de.hskl.ki.db.document.Users;
+import de.hskl.ki.db.document.User;
 import de.hskl.ki.db.repository.UserRepository;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,12 +21,12 @@ public class UsersResource {
     }
 
     @GetMapping("user")
-    public List<Users> getAll() {
+    public List<User> getAll() {
         return userRepository.findAll();
     }
 
     @GetMapping("user/{id}")
-    public Optional<Users> getUser(@PathVariable Integer id) {
+    public Optional<User> getUser(@PathVariable Integer id) {
         return userRepository.findById(id);
     }
 }

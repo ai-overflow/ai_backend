@@ -1,6 +1,6 @@
 package de.hskl.ki.services;
 
-import de.hskl.ki.db.document.Projects;
+import de.hskl.ki.db.document.Project;
 import de.hskl.ki.db.repository.ProjectRepository;
 import de.hskl.ki.models.git.GitCreationRequest;
 import de.hskl.ki.services.interfaces.StorageService;
@@ -33,7 +33,7 @@ public class GitService {
     @Autowired
     private SimpleDLYamlReader yamlReader;
 
-    public Optional<Projects> generateProject(GitCreationRequest repo) throws GitAPIException, IOException {
+    public Optional<Project> generateProject(GitCreationRequest repo) throws GitAPIException, IOException {
         Optional<Path> dir = projectStorageService.generateStorageFolder();
         if (dir.isPresent()) {
             var projectDir = dir.get();
@@ -53,7 +53,7 @@ public class GitService {
         return Optional.empty();
     }
 
-    private Projects cloneRepository(String repoUrl, Path dir) throws GitAPIException {
+    private Project cloneRepository(String repoUrl, Path dir) throws GitAPIException {
         Git git = Git.cloneRepository()
                 .setURI(repoUrl)
                 .setDirectory(dir.toFile())
@@ -61,7 +61,7 @@ public class GitService {
 
         git.close();
 
-        return new Projects(String.valueOf(dir), repoUrl);
+        return new Project(String.valueOf(dir), repoUrl);
     }
 
     private void deleteGitHistory(Path dir) {
@@ -90,7 +90,7 @@ public class GitService {
     }
 
     public boolean deleteProject(String projectId) {
-        Projects project = projectRepository.getProjectById(projectId);
+        Project project = projectRepository.getProjectById(projectId);
         Path p = Paths.get(project.getProjectPath());
         try {
             FileUtils.deleteDirectory(p.toFile());

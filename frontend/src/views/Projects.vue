@@ -39,8 +39,6 @@
           >
             <v-card :disabled="!!item.disabled">
               <v-card-title class="subheading font-weight-bold">
-                {{ item.yaml.name }}
-                <v-spacer></v-spacer>
                 <v-btn
                   @click="deleteProject(item.id)"
                   small
@@ -50,11 +48,28 @@
                 >
                   <v-icon>mdi-trash-can</v-icon>
                 </v-btn>
+                {{ item.yaml.name }}
+                <v-spacer></v-spacer>
+                <v-btn
+                  @click="startContainer(item.id)"
+                  small
+                  plain
+                  icon
+                  color="green"
+                >
+                  <v-icon>mdi-play</v-icon>
+                </v-btn>
               </v-card-title>
 
               <v-divider></v-divider>
 
               <v-list dense>
+                <v-list-item>
+                  <v-list-item-content> Container Status: </v-list-item-content>
+                  <v-list-item-content class="align-end">
+                    <span class="red--text"> TODO </span>
+                  </v-list-item-content>
+                </v-list-item>
                 <v-list-item>
                   <v-list-item-content> Erstellt: </v-list-item-content>
                   <v-list-item-content class="align-end">

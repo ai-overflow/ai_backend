@@ -1,7 +1,7 @@
 package de.hskl.ki.db.repository.interfaces;
 
-import de.hskl.ki.db.document.Users;
+import de.hskl.ki.db.document.User;
 
 public interface CustomUserRepository {
-    Users findUserByName(String userName);
+    User findUserByName(String userName);
 }

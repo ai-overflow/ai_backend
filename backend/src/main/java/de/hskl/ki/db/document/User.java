@@ -5,7 +5,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document
-public class Users {
+public class User {
     @Id
     private String id;
     private String username;
@@ -13,7 +13,7 @@ public class Users {
     @JsonIgnore
     private String passwordHash;
 
-    public Users(String id, String username, String passwordHash) {
+    public User(String id, String username, String passwordHash) {
         this.id = id;
         this.username = username;
         this.passwordHash = passwordHash;

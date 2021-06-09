@@ -6,7 +6,7 @@
         <v-col>
           <v-text-field
             label="Page Title"
-            placeholder="Placeholder"
+            placeholder="Title"
             v-model="page.title"
             outlined
           ></v-text-field>
@@ -49,6 +49,51 @@
       </v-row>
       <v-row>
         <v-col>
+          <h3>Select Top-Level Inputs:</h3>
+          <v-chip
+            v-for="label of getAvailableTopLevelTypes"
+            :key="label"
+            class="mr-2"
+            dark
+            :color="topLevelInputChips[label]"
+            @click="selectTopLevel(label)"
+          >
+            {{ label }}
+          </v-chip>
+        </v-col>
+      </v-row>
+      <v-row>
+        <v-col>
+          <div v-for="project in page.projects" :key="project.id">
+            <h4>{{ project.yaml.name }}</h4>
+            <v-checkbox
+              dense
+              v-for="[inputName, value] of Object.entries(project.yaml.input)"
+              :key="inputName"
+              disabled
+              v-model="page.topLevelInput[project.id]"
+              :value="inputName"
+            >
+              <!---->
+              <template v-slot:label>
+                <strong>[{{ inputName }}] {{ value.label }} </strong>
+                <v-spacer></v-spacer>
+                <span
+                  :style="{
+                    color: !getAvailableTopLevelTypes.includes(value.type)
+                      ? 'red'
+                      : '',
+                  }"
+                >
+                  {{ value.type }}
+                </span>
+              </template>
+            </v-checkbox>
+          </div>
+        </v-col>
+      </v-row>
+      <v-row>
+        <v-col>
           <v-btn color="primary" @click="submitPage">Submit</v-btn>
         </v-col>
       </v-row>
@@ -58,7 +103,9 @@
 
 <script>
 import ProjectService from "@/service/ProjectService";
+import PageService from "@/service/PageService";
 import dayjs from "dayjs";
+import { intersection } from "@/utility/utils";
 
 export default {
   data() {
@@ -69,7 +116,9 @@ export default {
         title: "",
         active: true,
         projects: [],
+        topLevelInput: [],
       },
+      topLevelInputChips: [],
       projectsLoading: false,
       searchProject: null,
       projectEntries: [],
@@ -77,7 +126,41 @@ export default {
   },
   methods: {
     submitPage() {
-      console.log("submit!");
+      PageService.addPage({
+        title: this.page.title,
+        description: this.page.description,
+        active: this.page.active,
+        topLevelInput: Object.assign({}, this.page.topLevelInput),
+        selectedProjects: this.page.projects.map((e) => e.id),
+      }).then((e) => {
+        console.log("done");
+      });
+    },
+    selectTopLevel(inputType) {
+      let valueChangeTo = undefined;
+      for (const el of Object.values(this.projectEntries)) {
+        for (const [name, input] of Object.entries(el.yaml.input)) {
+          if (input.type === inputType) {
+            let index = this.page.topLevelInput[el.id].indexOf(name);
+            if (
+              index === -1 &&
+              (valueChangeTo === undefined || valueChangeTo === true)
+            ) {
+              this.page.topLevelInput[el.id].push(name);
+              valueChangeTo = true;
+            } else if (
+              index > -1 &&
+              (valueChangeTo === undefined || valueChangeTo === false)
+            ) {
+              this.page.topLevelInput[el.id].splice(index, 1);
+              valueChangeTo = false;
+            }
+          }
+        }
+      }
+      this.topLevelInputChips[inputType] = valueChangeTo
+        ? "primary"
+        : "secondary";
     },
   },
   computed: {
@@ -94,6 +177,13 @@ export default {
         return Object.assign({}, e, { Description });
       });
     },
+    getAvailableTopLevelTypes() {
+      return intersection(
+        ...this.page.projects.map((e) =>
+          Object.values(e.yaml.input).map((i) => i.type)
+        )
+      );
+    },
   },
   watch: {
     searchProject(value) {
@@ -107,8 +197,11 @@ export default {
       // Lazily load input items
       ProjectService.getAllProjects()
         .then((response) => {
-          console.log(response.data);
           this.projectEntries = response.data;
+
+          for (const dbObj of Object.values(response.data)) {
+            this.$set(this.page.topLevelInput, dbObj.id, []);
+          }
         })
         .finally(() => (this.projectsLoading = false));
     },

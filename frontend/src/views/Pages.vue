@@ -16,29 +16,24 @@
           multiple
         >
           <template v-for="(item, index) in items">
-            <v-list-item
-              :key="item.page_name + index"
-              :to="'/page/' + index"
-            >
+            <v-list-item :key="item.title + index" :to="'/page/' + item.id">
               <template v-slot:default="{ active }">
                 <v-list-item-content>
-                  <v-list-item-title
-                    v-text="item.page_name"
-                  ></v-list-item-title>
+                  <v-list-item-title v-text="item.title"></v-list-item-title>
 
-                  <v-list-item-subtitle class="text--primary">{{
-                    item.authors.join(", ")
-                  }}</v-list-item-subtitle>
+                  <v-list-item-subtitle class="text--primary"
+                    >TODO</v-list-item-subtitle
+                  >
 
                   <v-list-item-subtitle
                     v-text="item.description"
                   ></v-list-item-subtitle>
                 </v-list-item-content>
 
-                <v-list-item-action>
-                  <v-list-item-action-text class="pink--text"
-                    >TODO</v-list-item-action-text
-                  >
+                <v-list-item-action @click="deleteProject(item.id)">
+                  <v-list-item-action-text>
+                    <v-icon color="red">mdi-trash-can</v-icon>
+                  </v-list-item-action-text>
 
                   <v-icon v-if="!active" color="grey lighten-1">
                     mdi-send-outline
@@ -58,20 +53,25 @@
 </template>
 
 <script>
+import PageService from "@/service/PageService";
 
 export default {
   created() {
-    //TODO: This will be called multiple times, replace with somthing better
-    /*GitService.listProjects().then((e) => {
-      console.log(e);
-      this.items = e;
-    });*/
+    PageService.getAllPages().then((e) => {
+      this.items = e.data;
+      console.log(e.data);
+    });
   },
   data() {
     return {
       selected: [2],
       items: [],
     };
+  },
+  methods: {
+    deleteProject(id) {
+      PageService.deletePage(id);
+    },
   },
 };
 </script>
