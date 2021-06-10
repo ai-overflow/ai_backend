@@ -153,10 +153,12 @@ export default {
       if (this.$route.params.id) {
         PageService.updatePage(this.$route.params.id, pageObj).then(() => {
           console.log("TODO: Show done message");
+          this.$router.push("/pages");
         });
       } else {
         PageService.addPage(pageObj).then(() => {
           console.log("TODO: show done message");
+          this.$router.push("/pages");
         });
       }
     },
@@ -229,7 +231,7 @@ export default {
         getUrl.host +
         "/" +
         getUrl.pathname.split("/")[1];
-      return baseUrl + "/api/v1/public/p/" + this.$route.params.id;
+      return /*baseUrl +*/ "/api/v1/public/p/" + this.$route.params.id;
     },
   },
   watch: {
