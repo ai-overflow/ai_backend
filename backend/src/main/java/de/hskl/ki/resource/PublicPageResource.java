@@ -22,7 +22,10 @@ public class PublicPageResource {
     private PageRepository pageRepository;
 
     @GetMapping("{id}")
-    public Page getPage(@PathVariable String id) {
-        return pageRepository.getPageById(id);
+    public ResponseEntity<?> getPage(@PathVariable String id) {
+        var found = pageRepository.findById(id);
+        if(found.isPresent())
+            return ResponseEntity.ok(found.get());
+        return ResponseEntity.notFound().build();
     }
 }

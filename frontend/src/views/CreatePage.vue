@@ -1,6 +1,9 @@
 <template>
   <v-card class="ma-4 pa-4">
-    <h2>Neue Seite erstellen</h2>
+    <h2>{{ $route.params.id ? page.title : "Neue Seite erstellen" }}</h2>
+    <pre v-if="$route.params.id">
+      TODO: {{ iframeSrc }}
+    </pre>
     <form>
       <v-row>
         <v-col>
@@ -139,17 +142,21 @@ export default {
   },
   methods: {
     submitPage() {
-      if (this.$route.params.id) {
-        console.log("TODO: update page");
-      } else {
-        PageService.addPage({
+      let pageObj = {
           title: this.page.title,
           description: this.page.description,
           active: this.page.active,
           topLevelInput: Object.assign({}, this.page.topLevelInput),
           selectedProjects: this.page.projects.map((e) => e.id),
-        }).then(() => {
-          console.log("done");
+        };
+
+      if (this.$route.params.id) {
+        PageService.updatePage(this.$route.params.id, pageObj).then(() => {
+          console.log("TODO: Show done message");
+        });
+      } else {
+        PageService.addPage(pageObj).then(() => {
+          console.log("TODO: show done message");
         });
       }
     },
@@ -213,6 +220,16 @@ export default {
           Object.values(e.yaml.input).map((i) => i.type)
         )
       );
+    },
+    iframeSrc() {
+      const getUrl = window.location;
+      const baseUrl =
+        getUrl.protocol +
+        "//" +
+        getUrl.host +
+        "/" +
+        getUrl.pathname.split("/")[1];
+      return baseUrl + "/api/v1/public/p/" + this.$route.params.id;
     },
   },
   watch: {

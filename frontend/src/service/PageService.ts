@@ -36,6 +36,15 @@ class PageService {
         return axios
             .post(PageService.API_PATH + "page/", parseOptionsToAxiosConfig(options));
     }
+
+    public updatePage(id: string, info: PageType, options?: any) {
+        options = {
+            ...options, ...info
+        };
+
+        return axios
+            .put(PageService.API_PATH + "page/" + id, parseOptionsToAxiosConfig(options));
+    }
 }
 
 export default new PageService();

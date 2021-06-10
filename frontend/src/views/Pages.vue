@@ -13,11 +13,11 @@
         <v-list-item-group
           v-model="selected"
           active-class="indigo--text"
-          multiple
+          disabled
         >
           <template v-for="(item, index) in items">
-            <v-list-item :key="item.title + index" :to="'/page/' + item.id">
-              <template v-slot:default="{ active }">
+            <v-list-item :key="item.title + index">
+              <template>
                 <v-list-item-content>
                   <v-list-item-title v-text="item.title"></v-list-item-title>
 
@@ -30,16 +30,14 @@
                   ></v-list-item-subtitle>
                 </v-list-item-content>
 
-                <v-list-item-action @click="deleteProject(item.id)">
-                  <v-list-item-action-text>
+                <v-list-item-action>
+                  <v-list-item-action-text @click="deleteProject(item.id)">
                     <v-icon color="red">mdi-trash-can</v-icon>
                   </v-list-item-action-text>
 
-                  <v-icon v-if="!active" color="grey lighten-1">
-                    mdi-send-outline
+                  <v-icon color="indigo darken-3" @click="$router.push('/page/' + item.id)">
+                    mdi-lead-pencil
                   </v-icon>
-
-                  <v-icon v-else color="indigo darken-3"> mdi-send </v-icon>
                 </v-list-item-action>
               </template>
             </v-list-item>
