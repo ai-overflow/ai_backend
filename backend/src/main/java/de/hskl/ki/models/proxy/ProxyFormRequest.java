@@ -11,18 +11,23 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ProxyFormRequest {
+    private String id;
     private String url;
     private Map<String, String> headerMap = new HashMap<>();
     private String data;
     private byte[] dataBinary;
     private String contentType;
+    private RequestMethods method;
 
     public ProxyFormRequest() {
     }
 
-    public ProxyFormRequest(String url, Map<String, String> headers) {
-        this.url = url;
-        this.headerMap = headers;
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getUrl() {
@@ -43,7 +48,6 @@ public class ProxyFormRequest {
 
     @JsonProperty("headers")
     public void setHeaders(String header) {
-        System.out.println("Called");
         ObjectMapper mapper = new ObjectMapper();
         try {
             headerMap = mapper.readValue(header, headerMap.getClass());
@@ -65,7 +69,6 @@ public class ProxyFormRequest {
     }
 
     public void setDataBinary(MultipartFile file) throws IOException {
-        System.out.println(file);
         dataBinary = file.getBytes();
     }
 
@@ -77,14 +80,24 @@ public class ProxyFormRequest {
         this.contentType = contentType;
     }
 
+    public RequestMethods getMethod() {
+        return method;
+    }
+
+    public void setMethod(RequestMethods method) {
+        this.method = method;
+    }
+
     @Override
     public String toString() {
         return "ProxyFormRequest{" +
-                "url='" + url + '\'' +
+                "id='" + id + '\'' +
+                ", url='" + url + '\'' +
                 ", headerMap=" + headerMap +
                 ", data='" + data + '\'' +
-                ", dataBinary=" + Arrays.toString(dataBinary) +
+                ", dataBinary=" + (dataBinary != null ? Arrays.toString(Arrays.copyOfRange(dataBinary, 0, 50)) : null) +
                 ", contentType='" + contentType + '\'' +
+                ", method='" + method + '\'' +
                 '}';
     }
 }

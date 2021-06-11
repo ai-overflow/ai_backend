@@ -14,7 +14,7 @@
         <InputGenerator :type-info="item" v-model="inputData[name]" />
       </div>
       <div>
-        <v-btn @click="submit">Senden</v-btn>
+        <v-btn @click="() => submit(page.id)">Senden</v-btn>
       </div>
     </div>
   </div>
@@ -26,6 +26,7 @@ import LoadingOverlay from "@/components/LoadingOverlay";
 import InputGenerator from "@shared/components/input/InputGenerator";
 import { proxyRequest } from "@shared/helper/connection";
 import { paramParser } from "@shared/helper/paramParser";
+import { defaultParamGenerator } from "@shared/helper/utility";
 
 export default {
   created() {
@@ -85,13 +86,19 @@ export default {
   },
   methods: {
     submit() {
-      console.log(this.inputData);
-       for (const [ObjKey, value] of Object.entries(this.page.projects)) {
-         console.log(ObjKey, value.yaml.connection[value.yaml.entryPoint]);
-         proxyRequest("/api/v1/public/proxy/", value.yaml.connection[value.yaml.entryPoint]).then(e => {
-           console.log(e);
-        })
-       }
+      for (const [ObjKey, value] of Object.entries(this.page.projects)) {
+        let defaultParams = defaultParamGenerator(value.yaml);
+        this.inputData = {...this.inputData, ...defaultParams};
+        paramParser.input = this.inputData
+
+        proxyRequest(
+          "/api/v1/public/proxy/",
+          value.yaml.connection[value.yaml.entryPoint],
+          value.id
+        ).then((e) => {
+          console.log(e);
+        });
+      }
       /**/
     },
   },

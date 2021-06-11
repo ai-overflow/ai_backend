@@ -1,111 +1,132 @@
 <template>
   <v-card class="ma-4 pa-4">
     <h2>{{ $route.params.id ? page.title : "Neue Seite erstellen" }}</h2>
-    <pre v-if="$route.params.id">
-      TODO: {{ iframeSrc }}
-    </pre>
-    <form>
-      <v-row>
-        <v-col>
-          <v-text-field
-            label="Page Title"
-            placeholder="Title"
-            v-model="page.title"
-            outlined
-          ></v-text-field>
-        </v-col>
-      </v-row>
-      <v-row>
-        <v-col>
-          <v-textarea
-            outlined
-            name="input-7-4"
-            label="Description"
-            v-model="page.description"
-          ></v-textarea>
-        </v-col>
-      </v-row>
-      <v-row>
-        <v-col>
-          <v-checkbox v-model="page.active" label="Page Active"></v-checkbox>
-        </v-col>
-      </v-row>
-      <v-row>
-        <v-col>
-          <v-autocomplete
-            v-model="page.projects"
-            :items="activeProjects"
-            :loading="projectsLoading"
-            :search-input.sync="searchProject"
-            hide-no-data
-            hide-selected
-            item-text="Description"
-            item-value="API"
-            label="Projects"
-            placeholder="Start typing to search Projects"
-            prepend-icon="mdi-database-search"
-            return-object
-            multiple
-            chips
-          ></v-autocomplete>
-        </v-col>
-      </v-row>
-      <v-row>
-        <v-col>
-          <h3>Select Top-Level Inputs:</h3>
-          <v-chip
-            v-for="label of getAvailableTopLevelTypes"
-            :key="label"
-            class="mr-2"
-            dark
-            :color="topLevelInputChips[label]"
-            @click="selectTopLevel(label)"
-          >
-            {{ label }}
-          </v-chip>
-        </v-col>
-      </v-row>
-      <v-row>
-        <v-col>
-          <v-checkbox v-model="forceManualSelect" label="Force Manual Select"></v-checkbox>
-        </v-col>
-      </v-row>
-      <v-row>
-        <v-col>
-          <div v-for="project in page.projects" :key="project.id">
-            <h4>{{ project.yaml.name }}</h4>
-            <v-checkbox
-              dense
-              v-for="[inputName, value] of Object.entries(project.yaml.input)"
-              :key="inputName"
-              :disabled="!forceManualSelect || !getAvailableTopLevelTypes.includes(value.type)"
-              v-model="page.topLevelInput[project.id]"
-              :value="inputName"
+    <v-container v-if="$route.params.id">
+      <v-text-field
+        :value="'<iframe src=\'' + iframeSrc + '\' />'"
+        label="HTML"
+        readonly
+      />
+      <v-expansion-panels v-model="panel" :disabled="disabled" multiple>
+        <v-expansion-panel>
+          <v-expansion-panel-header>Example</v-expansion-panel-header>
+          <v-expansion-panel-content>
+            <iframe :src="iframeSrc" title="example" class="example-iframe" />
+          </v-expansion-panel-content>
+        </v-expansion-panel>
+      </v-expansion-panels>
+    </v-container>
+    <v-container> <v-divider></v-divider> </v-container>
+    <v-container>
+      <form>
+        <v-row>
+          <v-col>
+            <v-text-field
+              label="Page Title"
+              placeholder="Title"
+              v-model="page.title"
+              outlined
+            ></v-text-field>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col>
+            <v-textarea
+              outlined
+              name="input-7-4"
+              label="Description"
+              v-model="page.description"
+            ></v-textarea>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col>
+            <v-checkbox v-model="page.active" label="Page Active"></v-checkbox>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col>
+            <v-autocomplete
+              v-model="page.projects"
+              :items="activeProjects"
+              :loading="projectsLoading"
+              :search-input.sync="searchProject"
+              hide-no-data
+              hide-selected
+              item-text="Description"
+              item-value="API"
+              label="Projects"
+              placeholder="Start typing to search Projects"
+              prepend-icon="mdi-database-search"
+              return-object
+              multiple
+              chips
+            ></v-autocomplete>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col>
+            <h3>Select Top-Level Inputs:</h3>
+            <v-chip
+              v-for="label of getAvailableTopLevelTypes"
+              :key="label"
+              class="mr-2"
+              dark
+              :color="topLevelInputChips[label]"
+              @click="selectTopLevel(label)"
             >
-              <!---->
-              <template v-slot:label>
-                <strong>[{{ inputName }}] {{ value.label }} </strong>
-                <v-spacer></v-spacer>
-                <span
-                  :style="{
-                    color: !getAvailableTopLevelTypes.includes(value.type)
-                      ? 'red'
-                      : '',
-                  }"
-                >
-                  {{ value.type }}
-                </span>
-              </template>
-            </v-checkbox>
-          </div>
-        </v-col>
-      </v-row>
-      <v-row>
-        <v-col>
-          <v-btn color="primary" @click="submitPage">Submit</v-btn>
-        </v-col>
-      </v-row>
-    </form>
+              {{ label }}
+            </v-chip>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col>
+            <v-checkbox
+              v-model="forceManualSelect"
+              label="Force Manual Select"
+            ></v-checkbox>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col>
+            <div v-for="project in page.projects" :key="project.id">
+              <h4>{{ project.yaml.name }}</h4>
+              <v-checkbox
+                dense
+                v-for="[inputName, value] of Object.entries(project.yaml.input)"
+                :key="inputName"
+                :disabled="
+                  !forceManualSelect ||
+                  !getAvailableTopLevelTypes.includes(value.type)
+                "
+                v-model="page.topLevelInput[project.id]"
+                :value="inputName"
+              >
+                <!---->
+                <template v-slot:label>
+                  <strong>[{{ inputName }}] {{ value.label }} </strong>
+                  <v-spacer></v-spacer>
+                  <span
+                    :style="{
+                      color: !getAvailableTopLevelTypes.includes(value.type)
+                        ? 'red'
+                        : '',
+                    }"
+                  >
+                    {{ value.type }}
+                  </span>
+                </template>
+              </v-checkbox>
+            </div>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col>
+            <v-btn color="primary" @click="submitPage">Submit</v-btn>
+          </v-col>
+        </v-row>
+      </form>
+    </v-container>
   </v-card>
 </template>
 
@@ -143,18 +164,18 @@ export default {
       projectsLoading: false,
       searchProject: null,
       projectEntries: [],
-      forceManualSelect: false
+      forceManualSelect: false,
     };
   },
   methods: {
     submitPage() {
       let pageObj = {
-          title: this.page.title,
-          description: this.page.description,
-          active: this.page.active,
-          topLevelInput: Object.assign({}, this.page.topLevelInput),
-          selectedProjects: this.page.projects.map((e) => e.id),
-        };
+        title: this.page.title,
+        description: this.page.description,
+        active: this.page.active,
+        topLevelInput: Object.assign({}, this.page.topLevelInput),
+        selectedProjects: this.page.projects.map((e) => e.id),
+      };
 
       if (this.$route.params.id) {
         PageService.updatePage(this.$route.params.id, pageObj).then(() => {
@@ -231,13 +252,9 @@ export default {
     },
     iframeSrc() {
       const getUrl = window.location;
-      const baseUrl =
-        getUrl.protocol +
-        "//" +
-        getUrl.host +
-        "/" +
-        getUrl.pathname.split("/")[1];
-      return /*baseUrl +*/ "/api/v1/public/p/" + this.$route.params.id;
+      const baseUrl = getUrl.protocol + "//" + getUrl.host;
+
+      return baseUrl + "/public/page/" + this.$route.params.id;
     },
   },
   watch: {
@@ -254,4 +271,10 @@ export default {
 </script>
 
 <style>
+.example-iframe {
+  border: none;
+  overflow: hidden;
+  min-width: 500px;
+  min-height: 600px;
+}
 </style>

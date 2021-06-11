@@ -1,5 +1,5 @@
 <template>
-  <v-app>
+  <v-app class="main">
     <v-app-bar color="primary" dark app v-if="!showFrontPage">
       <v-toolbar-title> AI Administration </v-toolbar-title>
       <v-spacer />
@@ -43,3 +43,8 @@ export default Vue.extend({
   },
 });
 </script>
+<style>
+html {
+  overflow: auto;
+}
+</style>
