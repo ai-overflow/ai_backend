@@ -67,13 +67,18 @@
       </v-row>
       <v-row>
         <v-col>
+          <v-checkbox v-model="forceManualSelect" label="Force Manual Select"></v-checkbox>
+        </v-col>
+      </v-row>
+      <v-row>
+        <v-col>
           <div v-for="project in page.projects" :key="project.id">
             <h4>{{ project.yaml.name }}</h4>
             <v-checkbox
               dense
               v-for="[inputName, value] of Object.entries(project.yaml.input)"
               :key="inputName"
-              disabled
+              :disabled="!forceManualSelect || !getAvailableTopLevelTypes.includes(value.type)"
               v-model="page.topLevelInput[project.id]"
               :value="inputName"
             >
@@ -138,6 +143,7 @@ export default {
       projectsLoading: false,
       searchProject: null,
       projectEntries: [],
+      forceManualSelect: false
     };
   },
   methods: {

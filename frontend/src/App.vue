@@ -29,7 +29,7 @@ export default Vue.extend({
   }),
   computed: {
     showFrontPage() {
-      return ["landing", "login"].includes(this.$route.name);
+      return (this.$route.meta.showFrame === undefined ? !!this.$route.meta.showFrame : true);
     },
   },
   methods: {

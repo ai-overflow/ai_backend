@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/v1/public/p/")
+@RequestMapping("/api/v1/public/pa/")
 public class PublicPageResource {
     @Autowired
     GitService gitService;
@@ -21,10 +21,11 @@ public class PublicPageResource {
     @Autowired
     private PageRepository pageRepository;
 
-    @GetMapping("{id}")
+    @GetMapping("page/{id}")
     public ResponseEntity<?> getPage(@PathVariable String id) {
         var found = pageRepository.findById(id);
-        if(found.isPresent())
+        System.out.println(found);
+        if(found.isPresent() && found.get().isActive())
             return ResponseEntity.ok(found.get());
         return ResponseEntity.notFound().build();
     }

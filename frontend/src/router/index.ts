@@ -21,7 +21,7 @@ function checkAuthentification<V extends Vue>(to: Route, from: Route, next: Navi
 
 function redirectIfAuthenticated<V extends Vue>(to: Route, from: Route, next: NavigationGuardNext<V>) {
   store.getters['auth/isLoggedIn'] ?
-      next({name: "home"}) : next();
+    next({ name: "home" }) : next();
 }
 
 export const routes: Array<RouteConfig> = [
@@ -47,7 +47,7 @@ export const routes: Array<RouteConfig> = [
   },
   {
     path: '/page/:id',
-    name: 'Pages',
+    name: 'Edit Page',
     component: () => import(/* webpackChunkName: "about" */ '../views/CreatePage.vue'),
     beforeEnter: checkAuthentification,
     meta: {
@@ -88,9 +88,19 @@ export const routes: Array<RouteConfig> = [
     component: Frontpage,
     beforeEnter: redirectIfAuthenticated,
     meta: {
-      showInNav: false
+      showInNav: false,
+      showFrame: false,
     }
   },
+  {
+    path: '/public/page/:id',
+    name: 'Public View',
+    component: () => import(/* webpackChunkName: "about" */ '../views/PublicPage.vue'),
+    meta: {
+      showInNav: false,
+      showFrame: false
+    }
+  }
 ]
 
 const router = new VueRouter({
