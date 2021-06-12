@@ -5,6 +5,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -19,6 +20,7 @@ public class Page {
     @DBRef
     private List<Project> selectedProjects;
     private Map<String, List<String>> topLevelInput;
+    private Date creationDate = new Date(System.currentTimeMillis());
 
     public Page(boolean active, String title, String description, List<Project> selectedProjects, Map<String, List<String>> topLevelInput) {
         this.active = active;
@@ -84,5 +86,13 @@ public class Page {
 
     public void setTopLevelInput(Map<String, List<String>> topLevelInput) {
         this.topLevelInput = topLevelInput;
+    }
+
+    public Date getCreationDate() {
+        return creationDate;
+    }
+
+    public void setCreationDate(Date creationDate) {
+        this.creationDate = creationDate;
     }
 }

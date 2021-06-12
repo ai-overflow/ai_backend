@@ -15,6 +15,7 @@ public class Project {
     private Date creationDate = new Date(System.currentTimeMillis());
     private String gitUrl;
     private ConfigDLYaml yaml;
+    private String hostname;
 
     public Project(String projectPath, Date creationDate, String gitUrl) {
         this.projectPath = projectPath;
@@ -75,5 +76,13 @@ public class Project {
 
     public void setYaml(ConfigDLYaml yaml) {
         this.yaml = yaml;
+    }
+
+    public String getHostname() {
+        return hostname;
+    }
+
+    public void setHostname(String hostname) {
+        this.hostname = hostname;
     }
 }

@@ -2,6 +2,7 @@ package de.hskl.ki.services;
 
 import de.hskl.ki.db.repository.ProjectRepository;
 import de.hskl.ki.models.proxy.ProxyFormRequest;
+import de.hskl.ki.models.proxy.RequestMethods;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,9 +26,10 @@ public class ProxyService {
     public Optional<byte[]> proxyRequest(ProxyFormRequest formRequest) {
         var project = projectRepository.findById(formRequest.getId());
 
-        System.out.println(formRequest);
         try {
             URL url = new URL(parseUrl(formRequest.getUrl()));
+            // TODO: This is sent as POST?
+            System.out.println("Url: " + url + ", " + formRequest.getMethod().name());
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod(formRequest.getMethod().name());
             for (Map.Entry<String, String> entry : formRequest.getHeaderMap().entrySet()) {
@@ -36,16 +38,19 @@ public class ProxyService {
             con.setRequestProperty("Content-Type", formRequest.getContentType());
             con.setInstanceFollowRedirects(true);
             con.setDoOutput(true);
-            try (OutputStream os = con.getOutputStream()) {
-                byte[] input = null;
-                if (formRequest.getDataBinary() != null) {
-                    input = formRequest.getDataBinary();
-                } else if (formRequest.getData() != null) {
-                    input = formRequest.getData().getBytes(StandardCharsets.UTF_8);
-                }
 
-                if (input != null) {
-                    os.write(input, 0, input.length);
+            if(!formRequest.getMethod().equals(RequestMethods.GET)) {
+                try (OutputStream os = con.getOutputStream()) {
+                    byte[] input = null;
+                    if (formRequest.getDataBinary() != null) {
+                        input = formRequest.getDataBinary();
+                    } else if (formRequest.getData() != null) {
+                        input = formRequest.getData().getBytes(StandardCharsets.UTF_8);
+                    }
+
+                    if (input != null) {
+                        os.write(input, 0, input.length);
+                    }
                 }
             }
             InputStream responseStream = con.getInputStream();
