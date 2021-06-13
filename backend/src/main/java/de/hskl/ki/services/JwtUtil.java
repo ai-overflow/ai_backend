@@ -4,6 +4,7 @@ import de.hskl.ki.models.auth.AuthenticationResponse;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -16,8 +17,7 @@ import java.util.function.Function;
 public class JwtUtil {
 
     public static final long EXPIRATION_DAYS = 365;
-    // TODO: Replace secret
-    private final String SECRET_KEY = "secret";
+    private final String SECRET_KEY = Utility.generateRandomString(25);
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);

@@ -95,4 +95,17 @@ public class Page {
     public void setCreationDate(Date creationDate) {
         this.creationDate = creationDate;
     }
+
+    @Override
+    public String toString() {
+        return "Page{" +
+                "id='" + id + '\'' +
+                ", active=" + active +
+                ", title='" + title + '\'' +
+                ", description='" + description + '\'' +
+                ", selectedProjects=" + selectedProjects +
+                ", topLevelInput=" + topLevelInput +
+                ", creationDate=" + creationDate +
+                '}';
+    }
 }

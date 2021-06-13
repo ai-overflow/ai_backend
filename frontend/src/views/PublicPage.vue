@@ -3,6 +3,7 @@
     <LoadingOverlay v-if="pageLoading" />
     <div v-if="!page.loadSuccess && !pageLoading">
       There was an error loading this page...
+      <p>{{ page.errorMessage }}</p>
     </div>
     <div v-if="page.loadSuccess && !pageLoading">
       <h2>{{ page.title }}</h2>
@@ -10,7 +11,7 @@
         {{ page.description }}
       </p>
       <div v-for="[name, item] of Object.entries(topLevelInputs)" :key="name">
-        <h4>{{ item.label || name }}</h4>
+        <h4>{{ parseParams(item.label) || name }}</h4>
         <InputGenerator :type-info="item" v-model="inputData[name]" />
       </div>
       <div>
@@ -19,13 +20,16 @@
     </div>
     <div v-if="serverReply && Object.keys(serverReply).length > 0">
       <v-tabs v-model="tab" align-with-title>
-        <v-tab v-for="index in this.page.projects" :key="index.id">
+        <v-tab
+          v-for="index in this.page.projects.filter((e) => !!serverReply[e.id])"
+          :key="index.id"
+        >
           {{ index.yaml.name }}
         </v-tab>
       </v-tabs>
       <v-tabs-items v-model="tab">
         <v-tab-item
-          v-for="index in this.page.projects"
+          v-for="index in this.page.projects.filter((e) => !!serverReply[e.id])"
           :key="index.id"
           class="public-tab-item"
         >
@@ -34,12 +38,38 @@
             :key="name"
             class="mt-10"
           >
-            <OutputGenerator
-              :output="item"
-              :inputVars="inputData"
-              :outputVars="serverReply[index.id]"
-              :customParser="projectParsers[index.id]"
-            />
+            <div
+              v-if="item.repeat && item.repeat.iterator"
+              class="limited-height-container"
+            >
+              <div
+                v-for="[i, el] of [
+                  ...projectParsers[index.id].parseIterator(
+                    item.repeat.iterator
+                  ),
+                ].entries()"
+                :key="i"
+              >
+                <OutputGenerator
+                  :output="item"
+                  :inputVars="inputData"
+                  :outputVars="serverReply[index.id]"
+                  :iterator="el"
+                  :title="
+                    projectParsers[index.id].parseIterator(item.repeat.title)[i]
+                  "
+                  :customParser="projectParsers[index.id]"
+                />
+              </div>
+            </div>
+            <div v-else class="limited-height-container">
+              <OutputGenerator
+                :output="item"
+                :inputVars="inputData"
+                :outputVars="serverReply[index.id]"
+                :customParser="projectParsers[index.id]"
+              />
+            </div>
           </div>
         </v-tab-item>
       </v-tabs-items>
@@ -72,9 +102,11 @@ export default {
         this.page.projects = e.data.selectedProjects;
         this.page.topLevelInput = e.data.topLevelInput;
         this.page.loadSuccess = true;
+        this.page.errorMessage = "";
       })
-      .catch(() => {
+      .catch((e) => {
         this.page.loadSuccess = false;
+        this.page.errorMessage = e.response.data?.message;
       })
       .finally(() => {
         this.pageLoading = false;
@@ -159,6 +191,12 @@ export default {
             if (--elements <= 0) this.loading = false;
           });
       }
+    },
+    parseIterator(str) {
+      return paramParser.parseIterator(str);
+    },
+    parseParams(str) {
+      return paramParser.parseParams(str);
     },
   },
 };

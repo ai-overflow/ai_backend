@@ -7,7 +7,7 @@
         label="HTML"
         readonly
       />
-      <v-expansion-panels v-model="panel" :disabled="disabled" multiple>
+      <v-expansion-panels multiple>
         <v-expansion-panel>
           <v-expansion-panel-header>Example</v-expansion-panel-header>
           <v-expansion-panel-content>

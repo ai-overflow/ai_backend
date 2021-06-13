@@ -24,7 +24,6 @@ public class PublicPageResource {
     @GetMapping("page/{id}")
     public ResponseEntity<?> getPage(@PathVariable String id) {
         var found = pageRepository.findById(id);
-        System.out.println(found);
         if(found.isPresent() && found.get().isActive())
             return ResponseEntity.ok(found.get());
         return ResponseEntity.notFound().build();

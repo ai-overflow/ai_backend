@@ -1,6 +1,8 @@
 package de.hskl.ki.services;
 
 import de.hskl.ki.services.interfaces.StorageService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -11,6 +13,7 @@ import java.util.Optional;
 
 @Service
 public class ProjectStorageService implements StorageService {
+    private Logger logger = LoggerFactory.getLogger(ProjectStorageService.class);
     private Path projectFolder;
 
     public ProjectStorageService() {
@@ -24,7 +27,7 @@ public class ProjectStorageService implements StorageService {
         try {
             Files.createDirectories(this.projectFolder);
         } catch (IOException e) {
-            // TODO: logging
+            logger.error("Unable to create project directory(" + pathInfo + ") for project");
             this.projectFolder = null;
         }
     }

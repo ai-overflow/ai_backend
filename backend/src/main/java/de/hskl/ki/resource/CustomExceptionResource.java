@@ -18,7 +18,6 @@ public class CustomExceptionResource {
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorDTO processRuntimeException(Exception e) {
-        System.out.println(e);
         return new ErrorDTO(e.getMessage());
     }
 

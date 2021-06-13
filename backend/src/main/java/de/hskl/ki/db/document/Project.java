@@ -8,7 +8,6 @@ import java.util.Date;
 
 @Document
 public class Project {
-    //TODO: CreateDate, Username,
     @Id
     private String id;
     private String projectPath;

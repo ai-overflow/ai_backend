@@ -28,8 +28,6 @@ public class ProxyService {
 
         try {
             URL url = new URL(parseUrl(formRequest.getUrl()));
-            // TODO: This is sent as POST?
-            System.out.println("Url: " + url + ", " + formRequest.getMethod().name());
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod(formRequest.getMethod().name());
             for (Map.Entry<String, String> entry : formRequest.getHeaderMap().entrySet()) {
