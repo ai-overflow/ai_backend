@@ -13,7 +13,7 @@ import java.util.Optional;
 
 @Service
 public class ProjectStorageService implements StorageService {
-    private Logger logger = LoggerFactory.getLogger(ProjectStorageService.class);
+    private final Logger logger = LoggerFactory.getLogger(ProjectStorageService.class);
     private Path projectFolder;
 
     public ProjectStorageService() {
