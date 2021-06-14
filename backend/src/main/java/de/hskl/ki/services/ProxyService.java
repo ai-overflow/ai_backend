@@ -29,7 +29,7 @@ public class ProxyService {
     // TODO: FormData, Image Conversion, HTML Sanitizing
     public Optional<byte[]> proxyRequest(ProxyFormRequest formRequest) {
         var project = projectRepository.findById(formRequest.getId());
-        
+
         try {
             if(!new URL(formRequest.getUrl()).getHost().equals("{{internal.HOST_URL}}")) {
                 return Optional.empty();

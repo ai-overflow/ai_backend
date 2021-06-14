@@ -14,7 +14,7 @@ const unauthorizedInterceptor = function(error: any) {
       return Promise.reject(error);
   }
   store.commit('auth/logout');
-  router.push({name: "/"});
+  router.push({name: "Home"});
   return Promise.reject(error);
 };
 

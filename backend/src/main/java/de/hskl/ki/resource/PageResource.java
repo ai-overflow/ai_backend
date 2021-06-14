@@ -4,13 +4,16 @@ import de.hskl.ki.db.document.Page;
 import de.hskl.ki.db.repository.PageRepository;
 import de.hskl.ki.db.repository.ProjectRepository;
 import de.hskl.ki.models.page.PageCreationRequest;
+import de.hskl.ki.models.page.PageLayout;
 import de.hskl.ki.services.GitService;
 import org.apache.commons.collections4.IterableUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/pa/")
@@ -23,6 +26,11 @@ public class PageResource {
 
     @Autowired
     private ProjectRepository projectRepository;
+
+    @GetMapping("type")
+    public List<String> getAllTypes() {
+        return Arrays.stream(PageLayout.class.getEnumConstants()).map(Enum::name).collect(Collectors.toList());
+    }
 
     @GetMapping("page")
     public List<Page> getAll() {

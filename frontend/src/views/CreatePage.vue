@@ -46,6 +46,11 @@
         </v-row>
         <v-row>
           <v-col>
+            <v-select :items="pageTypes" outlined label="Page Layout" v-model="page.layout"></v-select>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col>
             <v-autocomplete
               v-model="page.projects"
               :items="activeProjects"
@@ -147,7 +152,12 @@ export default {
           this.page.active = e.data.active;
           this.page.projects = e.data.selectedProjects;
           this.page.topLevelInput = e.data.topLevelInput;
+          this.page.layout = e.data.pageLayout;
         });
+
+      PageService.getAllPageTypes().then((e) => {
+        this.pageTypes = e.data;
+      });
     }
   },
   data() {
@@ -159,12 +169,14 @@ export default {
         active: true,
         projects: [],
         topLevelInput: [],
+        layout: ""
       },
       topLevelInputChips: [],
       projectsLoading: false,
       searchProject: null,
       projectEntries: [],
       forceManualSelect: false,
+      pageTypes: [],
     };
   },
   methods: {
@@ -173,6 +185,7 @@ export default {
         title: this.page.title,
         description: this.page.description,
         active: this.page.active,
+        pageLayout: this.page.layout,
         topLevelInput: Object.assign({}, this.page.topLevelInput),
         selectedProjects: this.page.projects.map((e) => e.id),
       };

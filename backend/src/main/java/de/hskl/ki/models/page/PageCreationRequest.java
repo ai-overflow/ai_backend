@@ -9,16 +9,26 @@ public class PageCreationRequest {
     private String description;
     private List<String> selectedProjects;
     private Map<String, List<String>> topLevelInput;
+    private PageLayout pageLayout;
 
     public PageCreationRequest() {
     }
 
-    public PageCreationRequest(boolean active, String title, String description, List<String> selectedProjects, Map<String, List<String>> topLevelInput) {
+    public PageCreationRequest(boolean active, String title, String description, List<String> selectedProjects, Map<String, List<String>> topLevelInput, PageLayout pageLayout) {
         this.active = active;
         this.title = title;
         this.description = description;
         this.selectedProjects = selectedProjects;
         this.topLevelInput = topLevelInput;
+        this.pageLayout = pageLayout;
+    }
+
+    public PageLayout getPageLayout() {
+        return pageLayout;
+    }
+
+    public void setPageLayout(PageLayout pageLayout) {
+        this.pageLayout = pageLayout;
     }
 
     public boolean isActive() {

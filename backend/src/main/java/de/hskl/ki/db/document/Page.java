@@ -1,6 +1,7 @@
 package de.hskl.ki.db.document;
 
 import de.hskl.ki.models.page.PageCreationRequest;
+import de.hskl.ki.models.page.PageLayout;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -21,13 +22,15 @@ public class Page {
     private List<Project> selectedProjects;
     private Map<String, List<String>> topLevelInput;
     private Date creationDate = new Date(System.currentTimeMillis());
+    private PageLayout pageLayout;
 
-    public Page(boolean active, String title, String description, List<Project> selectedProjects, Map<String, List<String>> topLevelInput) {
+    public Page(boolean active, String title, String description, List<Project> selectedProjects, Map<String, List<String>> topLevelInput, PageLayout pageLayout) {
         this.active = active;
         this.title = title;
         this.description = description;
         this.selectedProjects = selectedProjects;
         this.topLevelInput = topLevelInput;
+        this.pageLayout = pageLayout;
     }
 
     public Page(PageCreationRequest request) {
@@ -35,6 +38,7 @@ public class Page {
         this.title = request.getTitle();
         this.description = request.getDescription();
         this.topLevelInput = request.getTopLevelInput();
+        this.pageLayout = request.getPageLayout();
     }
 
     public Page() {
@@ -96,6 +100,14 @@ public class Page {
         this.creationDate = creationDate;
     }
 
+    public PageLayout getPageLayout() {
+        return pageLayout;
+    }
+
+    public void setPageLayout(PageLayout pageLayout) {
+        this.pageLayout = pageLayout;
+    }
+
     @Override
     public String toString() {
         return "Page{" +
@@ -106,6 +118,7 @@ public class Page {
                 ", selectedProjects=" + selectedProjects +
                 ", topLevelInput=" + topLevelInput +
                 ", creationDate=" + creationDate +
+                ", pageLayout=" + pageLayout +
                 '}';
     }
 }

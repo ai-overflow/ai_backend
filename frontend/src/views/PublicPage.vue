@@ -18,7 +18,7 @@
         <v-btn @click="() => submit(page.id)" :loading="loading">Senden</v-btn>
       </div>
     </div>
-    <div v-if="serverReply && Object.keys(serverReply).length > 0">
+    <div v-if="serverReply && Object.keys(serverReply).length > 0" class="mt-10">
       <v-tabs v-model="tab" align-with-title>
         <v-tab
           v-for="index in this.page.projects.filter((e) => !!serverReply[e.id])"
@@ -31,46 +31,53 @@
         <v-tab-item
           v-for="index in this.page.projects.filter((e) => !!serverReply[e.id])"
           :key="index.id"
-          class="public-tab-item"
         >
-          <div
-            v-for="[name, item] of Object.entries(index.yaml.output)"
-            :key="name"
-            class="mt-10"
-          >
-            <div
-              v-if="item.repeat && item.repeat.iterator"
-              class="limited-height-container"
-            >
+          <v-row>
+            <v-col v-if="page.layout === 'DOUBLE'" class="half-image">
+              <v-img :src="previewImage" />
+            </v-col>
+            <v-col class="public-tab-item">
               <div
-                v-for="[i, el] of [
-                  ...projectParsers[index.id].parseIterator(
-                    item.repeat.iterator
-                  ),
-                ].entries()"
-                :key="i"
+                v-for="[name, item] of Object.entries(index.yaml.output)"
+                :key="name"
               >
-                <OutputGenerator
-                  :output="item"
-                  :inputVars="inputData"
-                  :outputVars="serverReply[index.id]"
-                  :iterator="el"
-                  :title="
-                    projectParsers[index.id].parseIterator(item.repeat.title)[i]
-                  "
-                  :customParser="projectParsers[index.id]"
-                />
+                <div
+                  v-if="item.repeat && item.repeat.iterator"
+                  class="limited-height-container"
+                >
+                  <div
+                    v-for="[i, el] of [
+                      ...projectParsers[index.id].parseIterator(
+                        item.repeat.iterator
+                      ),
+                    ].entries()"
+                    :key="i"
+                  >
+                    <OutputGenerator
+                      :output="item"
+                      :inputVars="inputData"
+                      :outputVars="serverReply[index.id]"
+                      :iterator="el"
+                      :title="
+                        projectParsers[index.id].parseIterator(
+                          item.repeat.title
+                        )[i]
+                      "
+                      :customParser="projectParsers[index.id]"
+                    />
+                  </div>
+                </div>
+                <div v-else class="limited-height-container">
+                  <OutputGenerator
+                    :output="item"
+                    :inputVars="inputData"
+                    :outputVars="serverReply[index.id]"
+                    :customParser="projectParsers[index.id]"
+                  />
+                </div>
               </div>
-            </div>
-            <div v-else class="limited-height-container">
-              <OutputGenerator
-                :output="item"
-                :inputVars="inputData"
-                :outputVars="serverReply[index.id]"
-                :customParser="projectParsers[index.id]"
-              />
-            </div>
-          </div>
+            </v-col>
+          </v-row>
         </v-tab-item>
       </v-tabs-items>
     </div>
@@ -87,7 +94,7 @@ import {
   generateDataFromResponse,
 } from "@shared/helper/connection";
 import { ParamParser, paramParser } from "@shared/helper/paramParser";
-import { defaultParamGenerator } from "@shared/helper/utility";
+import { defaultParamGenerator, toBase64 } from "@shared/helper/utility";
 
 export default {
   created() {
@@ -101,6 +108,7 @@ export default {
         this.page.active = e.data.active;
         this.page.projects = e.data.selectedProjects;
         this.page.topLevelInput = e.data.topLevelInput;
+        this.page.layout = e.data.pageLayout;
         this.page.loadSuccess = true;
         this.page.errorMessage = "";
       })
@@ -125,6 +133,7 @@ export default {
       serverReply: {},
       loading: false,
       projectParsers: {},
+      previewImage: "",
     };
   },
   components: {
@@ -199,6 +208,22 @@ export default {
       return paramParser.parseParams(str);
     },
   },
+  watch: {
+    inputData: function () {
+      if (!this.page.layout || this.page.layout !== "DOUBLE") return;
+
+      const objFile =
+        this.inputData[
+          Object.keys(this.inputData).filter(
+            (e) =>
+              this.topLevelInputs[e] && this.topLevelInputs[e].type === "image"
+          )
+        ];
+      toBase64(objFile).then((e) => {
+        this.previewImage = e;
+      });
+    },
+  },
 };
 </script>
 
@@ -207,5 +232,8 @@ export default {
   overflow-y: auto;
   overflow-x: hidden;
   max-height: 500px;
+}
+.half-image {
+  max-width: 50%;
 }
 </style>

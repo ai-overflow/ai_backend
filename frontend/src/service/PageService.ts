@@ -13,6 +13,11 @@ class PageService {
 
     private static readonly API_PATH = '/api/v1/pa/';
 
+    public getAllPageTypes(options?: any) {
+        return axios
+            .get(PageService.API_PATH + "type/", parseOptionsToAxiosConfig(options));
+    }
+
     public getAllPages(options?: any) {
         return axios
             .get(PageService.API_PATH + "page/", parseOptionsToAxiosConfig(options));
