@@ -22,7 +22,7 @@
                   <v-list-item-title v-text="item.title"></v-list-item-title>
 
                   <v-list-item-subtitle class="text--primary"
-                    >TODO</v-list-item-subtitle
+                    >{{convertDate(item.creationDate)}}</v-list-item-subtitle
                   >
 
                   <v-list-item-subtitle
@@ -52,6 +52,7 @@
 
 <script>
 import PageService from "@/service/PageService";
+import dayjs from "dayjs";
 
 export default {
   created() {
@@ -70,7 +71,10 @@ export default {
     deleteProject(id) {
       PageService.deletePage(id);
     },
-  },
+    convertDate(date) {
+      return dayjs(date).format("DD.MM.YYYY");
+    },
+  }
 };
 </script>
 

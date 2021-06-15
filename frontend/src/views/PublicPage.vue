@@ -15,10 +15,13 @@
         <InputGenerator :type-info="item" v-model="inputData[name]" />
       </div>
       <div>
-        <v-btn @click="() => submit(page.id)" :loading="loading">Senden</v-btn>
+        <v-btn @click="() => submitAll()" :loading="loading">Senden</v-btn>
       </div>
     </div>
-    <div v-if="serverReply && Object.keys(serverReply).length > 0" class="mt-10">
+    <div
+      v-if="serverReply && Object.keys(serverReply).length > 0"
+      class="mt-10"
+    >
       <v-tabs v-model="tab" align-with-title>
         <v-tab
           v-for="index in this.page.projects.filter((e) => !!serverReply[e.id])"
@@ -36,44 +39,64 @@
             <v-col v-if="page.layout === 'DOUBLE'" class="half-image">
               <v-img :src="previewImage" />
             </v-col>
-            <v-col class="public-tab-item">
-              <div
-                v-for="[name, item] of Object.entries(index.yaml.output)"
-                :key="name"
-              >
+            <v-col>
+              <div class="pa-5">
                 <div
-                  v-if="item.repeat && item.repeat.iterator"
-                  class="limited-height-container"
+                  v-for="[inputName, inputItem] of Object.entries(
+                    index.yaml.input
+                  ).filter((e) => !Object.keys(topLevelInputs).includes(e[0]))"
+                  :key="inputName"
                 >
+                  <h4>{{ inputItem.label || inputName }}</h4>
+                  <InputGenerator
+                    :type-info="inputItem"
+                    v-model="projectInputData[index.id][inputName]"
+                  />
+                </div>
+                <v-btn @click="() => submit(index)"
+                  ><v-icon left>mdi-refresh</v-icon>Aktualisieren</v-btn
+                >
+              </div>
+              <div class="public-tab-item">
+                <div
+                  v-for="[name, item] of Object.entries(index.yaml.output)"
+                  :key="name"
+                >
+                  <h4>{{ parseParams(item.label) || name }}</h4>
                   <div
-                    v-for="[i, el] of [
-                      ...projectParsers[index.id].parseIterator(
-                        item.repeat.iterator
-                      ),
-                    ].entries()"
-                    :key="i"
+                    v-if="item.repeat && item.repeat.iterator"
+                    class="limited-height-container"
                   >
+                    <div
+                      v-for="[i, el] of [
+                        ...projectParsers[index.id].parseIterator(
+                          item.repeat.iterator
+                        ),
+                      ].entries()"
+                      :key="i"
+                    >
+                      <OutputGenerator
+                        :output="item"
+                        :inputVars="inputData"
+                        :outputVars="serverReply[index.id]"
+                        :iterator="el"
+                        :title="
+                          projectParsers[index.id].parseIterator(
+                            item.repeat.title
+                          )[i]
+                        "
+                        :customParser="projectParsers[index.id]"
+                      />
+                    </div>
+                  </div>
+                  <div v-else class="limited-height-container">
                     <OutputGenerator
                       :output="item"
                       :inputVars="inputData"
                       :outputVars="serverReply[index.id]"
-                      :iterator="el"
-                      :title="
-                        projectParsers[index.id].parseIterator(
-                          item.repeat.title
-                        )[i]
-                      "
                       :customParser="projectParsers[index.id]"
                     />
                   </div>
-                </div>
-                <div v-else class="limited-height-container">
-                  <OutputGenerator
-                    :output="item"
-                    :inputVars="inputData"
-                    :outputVars="serverReply[index.id]"
-                    :customParser="projectParsers[index.id]"
-                  />
                 </div>
               </div>
             </v-col>
@@ -111,6 +134,11 @@ export default {
         this.page.layout = e.data.pageLayout;
         this.page.loadSuccess = true;
         this.page.errorMessage = "";
+
+        for (let key of Object.values(this.page.projects)) {
+          this.projectInputData[key.id] = {};
+        }
+        console.log(this.projectInputData);
       })
       .catch((e) => {
         this.page.loadSuccess = false;
@@ -130,6 +158,7 @@ export default {
         description: "",
       },
       inputData: [],
+      projectInputData: {},
       serverReply: {},
       loading: false,
       projectParsers: {},
@@ -162,44 +191,44 @@ export default {
     },
   },
   methods: {
-    submit() {
+    submitAll() {
       this.loading = true;
       let elements = Object.keys(this.page.projects).length;
       for (const [ObjKey, value] of Object.entries(this.page.projects)) {
-        if (!this.projectParsers[value.id]) {
-          this.$set(this.projectParsers, value.id, new ParamParser());
-        }
-
-        let defaultParams = defaultParamGenerator(value.yaml);
-        this.inputData = { ...this.inputData, ...defaultParams };
-        paramParser.input = this.inputData;
-        this.projectParsers[value.id].input = this.inputData;
-
-        proxyRequest(
-          "/api/v1/public/proxy/",
-          value.yaml.connection[value.yaml.entryPoint],
-          value.id
-        )
-          .then((e) => {
-            let content = generateDataFromResponse(e);
-            let el = {};
-            el[value.yaml.entryPoint] = {
-              success: true,
-              value: content,
-              contentType: e.headers["content-type"],
-            };
-
-            //this.projectParsers[value.id].connection = el;
-            let copy = new ParamParser();
-            copy.connection = el;
-            copy.input = this.projectParsers[value.id].input;
-            this.$set(this.projectParsers, value.id, copy);
-            this.$set(this.serverReply, value.id, el);
-          })
-          .finally(() => {
-            if (--elements <= 0) this.loading = false;
-          });
+        this.submit(value).finally(() => {
+          if (--elements <= 0) this.loading = false;
+        });
       }
+    },
+    submit(value) {
+      if (!this.projectParsers[value.id]) {
+        this.$set(this.projectParsers, value.id, new ParamParser());
+      }
+
+      let defaultParams = defaultParamGenerator(value.yaml);
+      this.inputData = { ...this.inputData, ...defaultParams, ...this.projectInputData[value.id] };
+      paramParser.input = this.inputData;
+      this.projectParsers[value.id].input = this.inputData;
+
+      return proxyRequest(
+        "/api/v1/public/proxy/",
+        value.yaml.connection[value.yaml.entryPoint],
+        value.id
+      ).then((e) => {
+        let content = generateDataFromResponse(e);
+        let el = {};
+        el[value.yaml.entryPoint] = {
+          success: true,
+          value: content,
+          contentType: e.headers["content-type"],
+        };
+
+        let copy = new ParamParser();
+        copy.connection = el;
+        copy.input = this.projectParsers[value.id].input;
+        this.$set(this.projectParsers, value.id, copy);
+        this.$set(this.serverReply, value.id, el);
+      });
     },
     parseIterator(str) {
       return paramParser.parseIterator(str);
