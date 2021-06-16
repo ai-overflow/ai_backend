@@ -1,4 +1,4 @@
-package de.hskl.ki.models.yaml;
+package de.hskl.ki.models.yaml.dlconfig;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 

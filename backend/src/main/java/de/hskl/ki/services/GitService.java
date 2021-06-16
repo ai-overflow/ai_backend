@@ -3,6 +3,8 @@ package de.hskl.ki.services;
 import de.hskl.ki.db.document.Project;
 import de.hskl.ki.db.repository.ProjectRepository;
 import de.hskl.ki.models.git.GitCreationRequest;
+import de.hskl.ki.models.yaml.compose.DockerComposeYaml;
+import de.hskl.ki.models.yaml.dlconfig.ConfigDLYaml;
 import de.hskl.ki.services.interfaces.StorageService;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.eclipse.jgit.api.Git;
@@ -30,8 +32,8 @@ public class GitService {
     @Autowired
     private ProjectRepository projectRepository;
 
-    @Autowired
-    private SimpleDLYamlReader yamlReader;
+    private final SimpleYamlReader<ConfigDLYaml> dlConfigYamlReader = new SimpleYamlReader<>(ConfigDLYaml.class);
+    private final SimpleYamlReader<DockerComposeYaml> composeYamlReader = new SimpleYamlReader<>(DockerComposeYaml.class);
 
     public Optional<Project> generateProject(GitCreationRequest repo) throws GitAPIException, IOException {
         Optional<Path> dir = projectStorageService.generateStorageFolder();
@@ -40,8 +42,11 @@ public class GitService {
             var projectInfo = cloneRepository(repo.getRepoUrl(), projectDir);
             deleteGitHistory(projectDir);
             try {
-                var config = yamlReader.read(projectDir);
-                projectInfo.setYaml(config);
+                var config = dlConfigYamlReader.read(projectDir);
+                config.ifPresent(projectInfo::setYaml);
+
+                var composeConfig = composeYamlReader.read(projectDir, "docker-compose", List.of("yaml", "yml"));
+                composeConfig.ifPresent(System.out::println);
 
                 projectRepository.save(projectInfo);
             } catch (Exception e) {

@@ -1,6 +1,6 @@
 package de.hskl.ki.db.document;
 
-import de.hskl.ki.models.yaml.ConfigDLYaml;
+import de.hskl.ki.models.yaml.dlconfig.ConfigDLYaml;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 

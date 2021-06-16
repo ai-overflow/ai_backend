@@ -1,4 +1,4 @@
-package de.hskl.ki.models.yaml;
+package de.hskl.ki.models.yaml.dlconfig;
 
 public class YamlOutput {
     private String label;

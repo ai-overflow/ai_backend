@@ -1,6 +1,4 @@
-package de.hskl.ki.models.yaml;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+package de.hskl.ki.models.yaml.dlconfig;
 
 import java.util.Map;
 
