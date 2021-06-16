@@ -82,6 +82,18 @@
                     {{ item.gitUrl }}
                   </v-list-item-content>
                 </v-list-item>
+                 <v-list-item>
+                  <v-list-item-content> Hostname: </v-list-item-content>
+                  <v-list-item-content class="align-end">
+                    {{ item.hostname || '-' }}
+                  </v-list-item-content>
+                </v-list-item>
+                <v-list-item>
+                  <v-list-item-content> Service List: </v-list-item-content>
+                  <v-list-item-content class="align-end">
+                    {{ item.serviceNames !== null ? item.serviceNames.join(', ') : '-' }}
+                  </v-list-item-content>
+                </v-list-item>
               </v-list>
             </v-card>
           </v-col>

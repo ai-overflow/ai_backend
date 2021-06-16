@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
@@ -20,21 +21,37 @@ public class SimpleYamlReader<T> {
         this.classType = classType;
     }
 
-    public Optional<T> read(Path path) throws IOException {
+    public Optional<T> readDlConfig(Path path) throws IOException {
         return read(path, CONFIG_DL_YAML, List.of("yaml", "yml"));
     }
 
-    public Optional<T> read(Path path, String fileName, List<String> extentions) throws IOException {
+    public Optional<T> read(File fileName) throws IOException {
+        if(fileName.exists())
+            return Optional.of(mapper.readValue(fileName, classType));
+        return Optional.empty();
+    }
+
+    public Optional<T> read(Path path, String fileName, List<String> extensions) throws IOException {
+        Optional<File> configDlPath = findLocation(path, fileName, extensions);
+
+        if(configDlPath.isPresent())
+            return read(configDlPath.get());
+        return Optional.empty();
+    }
+
+    public Optional<File> findLocation(Path path, String fileName, List<String> extensions) {
         Path configDlPath = null;
-        for(String extention : extentions) {
-            var tmpName = path.resolve(fileName + "." + extention);
+        for(String extension : extensions) {
+            var tmpName = path.resolve(fileName + "." + extension);
             if(tmpName.toFile().exists()) {
                 configDlPath = tmpName;
             }
         }
 
-        if(configDlPath != null)
-            return Optional.of(mapper.readValue(configDlPath.toFile(), classType));
-        return Optional.empty();
+        return configDlPath != null ? Optional.of(configDlPath.toFile()) : Optional.empty();
+    }
+
+    public void write(File path, T value) throws IOException {
+        mapper.writeValue(path, value);
     }
 }

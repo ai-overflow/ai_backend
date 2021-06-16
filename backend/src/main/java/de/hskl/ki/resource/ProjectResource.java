@@ -40,7 +40,8 @@ public class ProjectResource {
 
     @DeleteMapping("project/{id}")
     public ResponseEntity<?> deleteRepo(@PathVariable String id) {
-        gitService.deleteProject(id);
-        return ResponseEntity.ok("ok");
+        if(gitService.deleteProject(id))
+            return ResponseEntity.ok("ok");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
 }

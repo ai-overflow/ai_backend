@@ -1,29 +1,36 @@
 package de.hskl.ki.models.yaml.compose;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import java.util.List;
 import java.util.Map;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Service {
     private String image;
     private Object build;
     private List<String> ports;
+    private List<String> expose;
     private List<Object> volumes;
     private String command;
     private Map<String, String> environment;
     private String restart;
     private String hostname;
-    private Map<String, Object> networks;
+    private List<String> networks;
+    private final Map<String, Object> ulimits;
 
-    public Service(String image, Object build, List<String> ports, List<Object> volumes, String command, Map<String, String> environment, String restart, String hostname, Map<String, Object> networks) {
+    public Service(String image, Object build, List<String> ports, List<String> expose, List<Object> volumes, String command, Map<String, String> environment, String restart, String hostname, List<String> networks, Map<String, Object> ulimits) {
         this.image = image;
         this.build = build;
         this.ports = ports;
+        this.expose = expose;
         this.volumes = volumes;
         this.command = command;
         this.environment = environment;
         this.restart = restart;
         this.hostname = hostname;
         this.networks = networks;
+        this.ulimits = ulimits;
     }
 
     public String getImage() {
@@ -90,13 +97,26 @@ public class Service {
         this.hostname = hostname;
     }
 
-    public Map<String, Object> getNetworks() {
+    public List<String> getNetworks() {
         return networks;
     }
 
-    public void setNetworks(Map<String, Object> networks) {
+    public void setNetworks(List<String> networks) {
         this.networks = networks;
     }
+
+    public List<String> getExpose() {
+        return expose;
+    }
+
+    public void setExpose(List<String> expose) {
+        this.expose = expose;
+    }
+
+    public Map<String, Object> getUlimits() {
+        return ulimits;
+    }
+
 
     @Override
     public String toString() {
@@ -104,12 +124,14 @@ public class Service {
                 "image='" + image + '\'' +
                 ", build=" + build +
                 ", ports=" + ports +
+                ", expose=" + expose +
                 ", volumes=" + volumes +
                 ", command='" + command + '\'' +
                 ", environment=" + environment +
                 ", restart='" + restart + '\'' +
                 ", hostname='" + hostname + '\'' +
                 ", networks=" + networks +
+                ", ulimits=" + ulimits +
                 '}';
     }
 }

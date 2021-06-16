@@ -5,6 +5,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Date;
+import java.util.List;
 
 @Document
 public class Project {
@@ -15,6 +16,7 @@ public class Project {
     private String gitUrl;
     private ConfigDLYaml yaml;
     private String hostname;
+    private List<String> serviceNames;
 
     public Project(String projectPath, Date creationDate, String gitUrl) {
         this.projectPath = projectPath;
@@ -32,6 +34,14 @@ public class Project {
         this.creationDate = creationDate;
         this.gitUrl = gitUrl;
         this.yaml = yaml;
+    }
+
+    public Project(String projectPath, Date creationDate, String gitUrl, ConfigDLYaml yaml, List<String> serviceNames) {
+        this.projectPath = projectPath;
+        this.creationDate = creationDate;
+        this.gitUrl = gitUrl;
+        this.yaml = yaml;
+        this.serviceNames = serviceNames;
     }
 
     public Project() {
@@ -83,5 +93,13 @@ public class Project {
 
     public void setHostname(String hostname) {
         this.hostname = hostname;
+    }
+
+    public List<String> getServiceNames() {
+        return serviceNames;
+    }
+
+    public void setServiceNames(List<String> serviceNames) {
+        this.serviceNames = serviceNames;
     }
 }

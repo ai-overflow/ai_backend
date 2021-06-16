@@ -1,5 +1,8 @@
 <template>
   <div>
+    <v-alert border="left" colored-border type="error" elevation="2" v-if="!!loginErrorMessage">
+      Login Error: {{loginErrorMessage}}
+    </v-alert>
     <form>
       <v-text-field
         v-model="username"
@@ -32,6 +35,7 @@ export default Vue.extend({
     return {
       username: "",
       password: "",
+      loginErrorMessage: undefined
     };
   },
   methods: {
@@ -45,18 +49,21 @@ export default Vue.extend({
         password: this.password,
       };
 
-      this.loginAction(loginRequest).then(() => {
-        if (this.$route.query.redirectTo) {
-          this.$router.push(this.$route.query.redirectTo);
-        } else {
-          this.$router.push("/Home").catch((err) => {
-            console.log(err.message);
-          });
-        }
-      })
-      .catch((err) => {
-          console.log(err);
-      });
+      this.loginAction(loginRequest)
+        .then(() => {
+          this.loginErrorMessage = undefined;
+          if (this.$route.query.redirectTo) {
+            this.$router.push(this.$route.query.redirectTo);
+          } else {
+            this.$router.push("/Home").catch((err) => {
+              console.log(err.message);
+            });
+          }
+        })
+        .catch((error) => {
+          console.log("ERROR:", error);
+          this.loginErrorMessage = error.response.data.message;
+        });
     },
   },
 });
