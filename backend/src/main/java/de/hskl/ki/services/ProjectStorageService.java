@@ -29,7 +29,7 @@ public class ProjectStorageService implements StorageService {
                 projectProperties.getHostDir() :
                 projectProperties.getDirectory();
 
-        this.projectFolder = Path.of(pathInfo).resolve("projects");
+        this.projectFolder = Path.of(pathInfo);
 
         try {
             Files.createDirectories(this.projectFolder);

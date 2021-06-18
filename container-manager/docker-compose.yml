@@ -1,0 +1,10 @@
+version: "3.9"
+services:
+  web:
+    build: .
+    ports:
+      - "8085:80"
+    volumes:
+      - ./src:/app
+      - //var/run/docker.sock:/var/run/docker.sock
+      - G:/projects:/projects # This needs to be a volume later on

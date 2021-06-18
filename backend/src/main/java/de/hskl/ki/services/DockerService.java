@@ -1,6 +1,7 @@
 package de.hskl.ki.services;
 
 import de.hskl.ki.config.properties.ProjectProperties;
+import de.hskl.ki.config.properties.SpringProperties;
 import de.hskl.ki.db.document.Project;
 import de.hskl.ki.models.yaml.compose.DockerComposeYaml;
 import de.hskl.ki.models.yaml.compose.DockerNetwork;
@@ -10,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
@@ -18,20 +20,11 @@ import java.util.stream.Collectors;
 @Service
 public class DockerService {
 
-    private final Logger logger = LoggerFactory.getLogger(DockerService.class);
     public static final String DL_PROJECT_NETWORK = "dl_project_network";
+    private final Logger logger = LoggerFactory.getLogger(DockerService.class);
     private final SimpleYamlReader<DockerComposeYaml> composeYamlReader = new SimpleYamlReader<>(DockerComposeYaml.class);
-
-
-    private static class HostnameServicePOD {
-        public String hostname;
-        public List<String> services;
-
-        public HostnameServicePOD(String hostname, List<String> services) {
-            this.hostname = hostname;
-            this.services = services;
-        }
-    }
+    @Autowired
+    ProjectProperties projectProperties;
 
     public boolean processComposeFile(Path projectDir, Project projectInfo) throws IOException {
         var location = composeYamlReader.findLocation(projectDir, "docker-compose", List.of("yaml", "yml"));
@@ -42,7 +35,7 @@ public class DockerService {
 
         var composeConfig = composeYamlReader.read(location.get());
         if (composeConfig.isPresent()) {
-            var data = updateComposeFile(composeConfig.get(), projectInfo);
+            var data = updateComposeFile(composeConfig.get(), projectInfo, projectDir);
             composeYamlReader.write(location.get(), composeConfig.get());
 
             projectInfo.setHostname(data.hostname);
@@ -54,16 +47,41 @@ public class DockerService {
         return true;
     }
 
-    public HostnameServicePOD updateComposeFile(DockerComposeYaml dockerComposeYaml, Project projectInfo) {
+    public HostnameServicePOD updateComposeFile(DockerComposeYaml dockerComposeYaml, Project projectInfo, Path projectDir) {
         removeTriton(dockerComposeYaml);
         replacePortWithExpose(dockerComposeYaml);
         addNetworkToContainer(dockerComposeYaml);
         changeComposeVersion(dockerComposeYaml);
-        
+        changeVolumePath(dockerComposeYaml, projectDir);
+
         ArrayList<String> services = renameService(dockerComposeYaml, projectInfo);
         UUID hostname = setHostname(dockerComposeYaml);
 
         return new HostnameServicePOD(hostname.toString(), services);
+    }
+
+    private void changeVolumePath(DockerComposeYaml dockerComposeYaml, Path projectDir) {
+        for (var service : dockerComposeYaml.getServices().values()) {
+            service.setVolumes(service.getVolumes()
+                    .stream()
+                    .map(volume -> {
+                        if (!(volume instanceof String)) return volume;
+
+                        String volumeStr = (String) volume;
+                        String[] volumes = volumeStr.split(":");
+                        if(volumes.length < 2) return volume;
+                        volumeStr = volumes[0];
+
+                        try {
+                            String pathName = new File(projectDir.toFile(), volumeStr).getCanonicalFile().toString();
+                            pathName = pathName.replaceAll("^([A-Za-z]):", "$1").toLowerCase();
+                            return "/host_mnt/" + pathName + ":" + volumes[1];
+                        } catch (IOException e) {
+                            return volume;
+                        }
+                    })
+                    .collect(Collectors.toList()));
+        }
     }
 
     private void changeComposeVersion(DockerComposeYaml dockerComposeYaml) {
@@ -81,11 +99,11 @@ public class DockerService {
 
     private void addNetworkToContainer(DockerComposeYaml dockerComposeYaml) {
         // Add Network to Container
-        if(dockerComposeYaml.getNetworks() == null)
+        if (dockerComposeYaml.getNetworks() == null)
             dockerComposeYaml.setNetworks(new HashMap<>());
         dockerComposeYaml.getNetworks().put(DL_PROJECT_NETWORK, new DockerNetwork(true));
         dockerComposeYaml.getServices().values().forEach(e -> {
-            if(e.getNetworks() == null)
+            if (e.getNetworks() == null)
                 e.setNetworks(new ArrayList<>());
             e.getNetworks().add(DL_PROJECT_NETWORK);
         });
@@ -132,5 +150,15 @@ public class DockerService {
                 return e.getValue().getImage().contains("triton");
             return false;
         });
+    }
+
+    private static class HostnameServicePOD {
+        public String hostname;
+        public List<String> services;
+
+        public HostnameServicePOD(String hostname, List<String> services) {
+            this.hostname = hostname;
+            this.services = services;
+        }
     }
 }

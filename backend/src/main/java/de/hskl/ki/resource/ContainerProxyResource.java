@@ -5,6 +5,8 @@ import de.hskl.ki.db.document.Project;
 import de.hskl.ki.db.repository.ProjectRepository;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -42,7 +44,7 @@ public class ContainerProxyResource {
     }
 
     @PostMapping("container/{id}")
-    public String changeContainerStatus(@PathVariable String id) throws IOException {
+    public ResponseEntity<?> changeContainerStatus(@PathVariable String id) throws IOException {
 
 
         Optional<Project> projectWrapper = projectRepository.findById(id);
@@ -60,9 +62,9 @@ public class ContainerProxyResource {
             }
             con.connect();
             InputStream responseStream = con.getInputStream();
-            return IOUtils.toString(responseStream, StandardCharsets.UTF_8);
+            return ResponseEntity.ok(IOUtils.toString(responseStream, StandardCharsets.UTF_8));
         }
 
-        return "NONE";
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 }
