@@ -1,11 +1,9 @@
+import json
 import os
 import subprocess
-from os.path import isfile, join
-from os import listdir
 
 from app import app
 from flask import request
-import json
 
 
 @app.route('/api/v1/container', methods=["GET"])
@@ -17,15 +15,24 @@ def get_containers():
 
 @app.route('/api/v1/container', methods=["POST"])
 def start_container():
-    data = json.loads(request.get_data())
+    return docker_compose_command(["docker-compose", "up", "-d"])
 
+
+@app.route('/api/v1/container', methods=["DELETE"])
+def stop_container():
+    return docker_compose_command(["docker-compose", "down"])
+
+
+def docker_compose_command(command):
+    data = json.loads(request.get_data())
     folder = "/projects/" + data['project_folder']
     if os.path.isdir(folder):
-
         # TODO: Move to own Thread
-        subprocess.run(["docker-compose", "up", "-d"], cwd=folder)
-        return json.dumps({"success": True})
-    return json.dumps({"error": "Can't find Project"})
+        status_code = subprocess.run(command, cwd=folder)
+        if status_code.returncode == 0:
+            return json.dumps({"success": True})
+        return json.dumps({"success": False, "message": "Failed with status code: " + str(status_code.returncode)})
+    return json.dumps({"success": False, "message": "Can't find Project"})
 
 
 if __name__ == '__main__':

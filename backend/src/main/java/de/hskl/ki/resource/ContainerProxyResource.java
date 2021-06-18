@@ -4,6 +4,7 @@ import de.hskl.ki.config.properties.ProjectProperties;
 import de.hskl.ki.db.document.Project;
 import de.hskl.ki.db.repository.ProjectRepository;
 import org.apache.commons.io.IOUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -44,9 +45,25 @@ public class ContainerProxyResource {
     }
 
     @PostMapping("container/{id}")
-    public ResponseEntity<?> changeContainerStatus(@PathVariable String id) throws IOException {
+    public ResponseEntity<?> startContainer(@PathVariable String id) throws IOException {
+        Optional<String> value = containerRequest(id, "POST");
+        if(value.isPresent()) {
+            return ResponseEntity.ok(value.get());
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
 
+    @DeleteMapping("container/{id}")
+    public ResponseEntity<?> stopContainer(@PathVariable String id) throws IOException {
+        Optional<String> value = containerRequest(id, "DELETE");
+        if(value.isPresent()) {
+            return ResponseEntity.ok(value.get());
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
 
+    @NotNull
+    private Optional<String> containerRequest(String id, String method) throws IOException {
         Optional<Project> projectWrapper = projectRepository.findById(id);
         if(projectWrapper.isPresent()) {
             Project project = projectWrapper.get();
@@ -55,16 +72,16 @@ public class ContainerProxyResource {
             URL url = new URL(CONTAINER_PROXY_URL + "container");
 
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
-            con.setRequestMethod("POST");
+            con.setRequestMethod(method);
             con.setDoOutput(true);
             try (OutputStreamWriter  os = new OutputStreamWriter(con.getOutputStream())) {
                 os.write("{\"project_folder\": \"" + path.toString() + "\"}");
             }
             con.connect();
             InputStream responseStream = con.getInputStream();
-            return ResponseEntity.ok(IOUtils.toString(responseStream, StandardCharsets.UTF_8));
+            return Optional.of(IOUtils.toString(responseStream, StandardCharsets.UTF_8));
         }
 
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        return Optional.empty();
     }
 }
