@@ -3,10 +3,10 @@ package de.hskl.ki.services;
 import de.hskl.ki.db.document.Project;
 import de.hskl.ki.db.repository.ProjectRepository;
 import de.hskl.ki.models.git.GitCreationRequest;
-import de.hskl.ki.models.yaml.compose.DockerComposeYaml;
-import de.hskl.ki.models.yaml.compose.DockerNetwork;
 import de.hskl.ki.models.yaml.dlconfig.ConfigDLYaml;
 import de.hskl.ki.services.interfaces.StorageService;
+import de.hskl.ki.services.processor.SimpleFileProcessor;
+import de.hskl.ki.services.processor.SimpleYamlProcessor;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand;
@@ -24,13 +24,12 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class GitService {
 
     private final Logger logger = LoggerFactory.getLogger(GitService.class);
-    private final SimpleYamlReader<ConfigDLYaml> dlConfigYamlReader = new SimpleYamlReader<>(ConfigDLYaml.class);
+    private final SimpleYamlProcessor<ConfigDLYaml> dlConfigYamlReader = new SimpleYamlProcessor<>(ConfigDLYaml.class);
 
     @Autowired
     StorageService projectStorageService;

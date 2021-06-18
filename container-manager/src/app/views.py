@@ -1,6 +1,7 @@
 import json
 import os
 import subprocess
+import docker
 
 from app import app
 from flask import request
@@ -8,9 +9,10 @@ from flask import request
 
 @app.route('/api/v1/container', methods=["GET"])
 def get_containers():
-    data = request.data
-    subprocess.run(["docker-compose", "up", "-d"])
-    return 'run...'
+    client = docker.from_env()
+    value = list(map(lambda x: {"name": x.name, "status": x.status}, client.containers.list()))
+    print(value)
+    return json.dumps(value)
 
 
 @app.route('/api/v1/container', methods=["POST"])

@@ -1,10 +1,11 @@
 package de.hskl.ki.services;
 
 import de.hskl.ki.config.properties.ProjectProperties;
-import de.hskl.ki.config.properties.SpringProperties;
 import de.hskl.ki.db.document.Project;
 import de.hskl.ki.models.yaml.compose.DockerComposeYaml;
 import de.hskl.ki.models.yaml.compose.DockerNetwork;
+import de.hskl.ki.services.processor.SimpleFileProcessor;
+import de.hskl.ki.services.processor.SimpleYamlProcessor;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +23,7 @@ public class DockerService {
 
     public static final String DL_PROJECT_NETWORK = "dl_project_network";
     private final Logger logger = LoggerFactory.getLogger(DockerService.class);
-    private final SimpleYamlReader<DockerComposeYaml> composeYamlReader = new SimpleYamlReader<>(DockerComposeYaml.class);
+    private final SimpleFileProcessor<DockerComposeYaml> composeYamlReader = new SimpleYamlProcessor<>(DockerComposeYaml.class);
     @Autowired
     ProjectProperties projectProperties;
 

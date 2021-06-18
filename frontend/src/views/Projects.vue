@@ -51,11 +51,24 @@
                 {{ item.yaml.name }}
                 <v-spacer></v-spacer>
                 <v-btn
+                  @click="stopContainer(item.id)"
+                  small
+                  plain
+                  icon
+                  v-if="checkIfRunning(item.projectPath)"
+                  color="red"
+                  :loading="statusLoading[item.id]"
+                >
+                  <v-icon> mdi-pause </v-icon>
+                </v-btn>
+                <v-btn
                   @click="startContainer(item.id)"
                   small
                   plain
                   icon
+                  v-else
                   color="green"
+                  :loading="statusLoading[item.id]"
                 >
                   <v-icon>mdi-play</v-icon>
                 </v-btn>
@@ -67,7 +80,13 @@
                 <v-list-item>
                   <v-list-item-content> Container Status: </v-list-item-content>
                   <v-list-item-content class="align-end">
-                    <span class="red--text"> TODO </span>
+                    <span
+                      v-if="checkIfRunning(item.projectPath)"
+                      class="green--text"
+                    >
+                      Aktiv
+                    </span>
+                    <span class="red--text" v-else>Inaktiv</span>
                   </v-list-item-content>
                 </v-list-item>
                 <v-list-item>
@@ -82,16 +101,20 @@
                     {{ item.gitUrl }}
                   </v-list-item-content>
                 </v-list-item>
-                 <v-list-item>
+                <v-list-item>
                   <v-list-item-content> Hostname: </v-list-item-content>
                   <v-list-item-content class="align-end">
-                    {{ item.hostname || '-' }}
+                    {{ item.hostname || "-" }}
                   </v-list-item-content>
                 </v-list-item>
                 <v-list-item>
                   <v-list-item-content> Service List: </v-list-item-content>
                   <v-list-item-content class="align-end">
-                    {{ item.serviceNames !== null ? item.serviceNames.join(', ') : '-' }}
+                    {{
+                      item.serviceNames !== null
+                        ? item.serviceNames.join(", ")
+                        : "-"
+                    }}
                   </v-list-item-content>
                 </v-list-item>
               </v-list>
@@ -148,6 +171,7 @@
 
 <script>
 import ProjectService from "@/service/ProjectService";
+import DockerService from "@/service/DockerService";
 import dayjs from "dayjs";
 
 export default {
@@ -158,12 +182,15 @@ export default {
       itemsPerPageArray: [8, 12, 24],
       page: 1,
       items: [],
+      runningProjects: [],
+      statusLoading: [],
     };
   },
   created() {
     ProjectService.getAllProjects().then((response) => {
       this.items = response.data;
     });
+    this.loadContainerStatus();
   },
   computed: {
     numberOfPages() {
@@ -171,6 +198,31 @@ export default {
     },
   },
   methods: {
+    startContainer(id) {
+      this.$set(this.statusLoading, id, true);
+      DockerService.startContainer(id)
+        .then((response) => {
+          return this.loadContainerStatus();
+        })
+        .then(() => {
+          this.$set(this.statusLoading, id, false);
+        });
+    },
+    stopContainer(id) {
+      this.$set(this.statusLoading, id, true);
+      DockerService.stopContainer(id)
+        .then((response) => {
+          return this.loadContainerStatus();
+        })
+        .then(() => {
+          this.$set(this.statusLoading, id, false);
+        });
+    },
+    loadContainerStatus() {
+      return DockerService.getRunningContainers().then((response) => {
+        this.runningProjects = response.data;
+      });
+    },
     nextPage() {
       if (this.page + 1 <= this.numberOfPages) this.page += 1;
     },
@@ -198,6 +250,10 @@ export default {
           newVal.disabled = false;
           this.$set(this.items, itemIndex, newVal);
         });
+    },
+    checkIfRunning(pathName) {
+      let match = pathName.match(/([^/|\\]*)\/*$/)[1];
+      return this.runningProjects.some((e) => e.startsWith(match));
     },
   },
 };

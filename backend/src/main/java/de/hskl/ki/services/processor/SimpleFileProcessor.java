@@ -1,5 +1,6 @@
-package de.hskl.ki.services;
+package de.hskl.ki.services.processor;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -10,19 +11,20 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
-public class SimpleYamlReader<T> {
-    private static final String CONFIG_DL_YAML = "config.dl";
-    private ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+public abstract class SimpleFileProcessor<T> {
+    protected ObjectMapper mapper;
     private final Class<T> classType;
 
-    public SimpleYamlReader(Class<T> classType) {
-        mapper.findAndRegisterModules();
-        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    public SimpleFileProcessor(Class<T> classType) {
         this.classType = classType;
     }
 
-    public Optional<T> readDlConfig(Path path) throws IOException {
-        return read(path, CONFIG_DL_YAML, List.of("yaml", "yml"));
+    public Optional<T> read(String value) {
+        try {
+            return Optional.of(mapper.readValue(value, classType));
+        } catch (JsonProcessingException e) {
+            return Optional.empty();
+        }
     }
 
     public Optional<T> read(File fileName) throws IOException {

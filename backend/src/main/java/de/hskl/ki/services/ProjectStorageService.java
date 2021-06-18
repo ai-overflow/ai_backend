@@ -17,6 +17,7 @@ import java.util.Optional;
 
 @Service
 public class ProjectStorageService implements StorageService {
+    public static final String PROJECT_PREFIX = "project_";
     private final Logger logger = LoggerFactory.getLogger(ProjectStorageService.class);
     private final ProjectProperties projectProperties;
     private Path projectFolder;
@@ -45,7 +46,7 @@ public class ProjectStorageService implements StorageService {
 
         Path tempDirWithPrefix;
         try {
-            tempDirWithPrefix = Files.createTempDirectory(this.projectFolder, "project_");
+            tempDirWithPrefix = Files.createTempDirectory(this.projectFolder, PROJECT_PREFIX);
         } catch (IOException e) {
             logger.error("Unable to create temporary File: " + e.toString());
             return Optional.empty();
