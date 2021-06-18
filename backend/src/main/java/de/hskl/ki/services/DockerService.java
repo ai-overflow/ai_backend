@@ -1,11 +1,13 @@
 package de.hskl.ki.services;
 
+import de.hskl.ki.config.properties.ProjectProperties;
 import de.hskl.ki.db.document.Project;
 import de.hskl.ki.models.yaml.compose.DockerComposeYaml;
 import de.hskl.ki.models.yaml.compose.DockerNetwork;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -19,6 +21,7 @@ public class DockerService {
     private final Logger logger = LoggerFactory.getLogger(DockerService.class);
     public static final String DL_PROJECT_NETWORK = "dl_project_network";
     private final SimpleYamlReader<DockerComposeYaml> composeYamlReader = new SimpleYamlReader<>(DockerComposeYaml.class);
+
 
     private static class HostnameServicePOD {
         public String hostname;
@@ -54,12 +57,18 @@ public class DockerService {
     public HostnameServicePOD updateComposeFile(DockerComposeYaml dockerComposeYaml, Project projectInfo) {
         removeTriton(dockerComposeYaml);
         replacePortWithExpose(dockerComposeYaml);
-        AddNetworkToContainer(dockerComposeYaml);
+        addNetworkToContainer(dockerComposeYaml);
+        changeComposeVersion(dockerComposeYaml);
         
         ArrayList<String> services = renameService(dockerComposeYaml, projectInfo);
         UUID hostname = setHostname(dockerComposeYaml);
 
         return new HostnameServicePOD(hostname.toString(), services);
+    }
+
+    private void changeComposeVersion(DockerComposeYaml dockerComposeYaml) {
+        //TODO: Maybe check if version is actually 3
+        dockerComposeYaml.setVersion("3");
     }
 
     @NotNull
@@ -70,7 +79,7 @@ public class DockerService {
         return hostname;
     }
 
-    private void AddNetworkToContainer(DockerComposeYaml dockerComposeYaml) {
+    private void addNetworkToContainer(DockerComposeYaml dockerComposeYaml) {
         // Add Network to Container
         if(dockerComposeYaml.getNetworks() == null)
             dockerComposeYaml.setNetworks(new HashMap<>());

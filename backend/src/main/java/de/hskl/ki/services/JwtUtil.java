@@ -1,13 +1,18 @@
 package de.hskl.ki.services;
 
+import de.hskl.ki.config.properties.SpringProperties;
 import de.hskl.ki.models.auth.AuthenticationResponse;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import javax.inject.Inject;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,9 +20,15 @@ import java.util.function.Function;
 
 @Service
 public class JwtUtil {
-
     public static final long EXPIRATION_DAYS = 365;
-    private final String SECRET_KEY = Utility.generateRandomString(25);
+    private final String SECRET_KEY;
+
+    @Inject
+    public JwtUtil(SpringProperties springProperties) {
+        this.SECRET_KEY = springProperties.hasEnvironment("dev") ?
+                "CHANGEME" :
+                Utility.generateRandomString(25);
+    }
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);

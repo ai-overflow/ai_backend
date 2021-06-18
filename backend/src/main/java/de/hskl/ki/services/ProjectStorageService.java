@@ -1,10 +1,14 @@
 package de.hskl.ki.services;
 
+import de.hskl.ki.config.properties.ProjectProperties;
+import de.hskl.ki.config.properties.SpringProperties;
 import de.hskl.ki.services.interfaces.StorageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.inject.Inject;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -14,15 +18,18 @@ import java.util.Optional;
 @Service
 public class ProjectStorageService implements StorageService {
     private final Logger logger = LoggerFactory.getLogger(ProjectStorageService.class);
+    private final ProjectProperties projectProperties;
     private Path projectFolder;
 
-    public ProjectStorageService() {
-        String pathInfo = System.getenv("PROJECT_DIR");
-        if (pathInfo != null && !pathInfo.isEmpty()) {
-            this.projectFolder = Paths.get(System.getenv("PROJECT_DIR")).resolve("projects");
-        } else {
-            this.projectFolder = Path.of(System.getProperty("user.dir")).resolve("projects");
-        }
+    @Inject
+    public ProjectStorageService(ProjectProperties projectProperties, SpringProperties springProperties) {
+        this.projectProperties = projectProperties;
+
+        String pathInfo = springProperties.hasEnvironment("dev") ?
+                projectProperties.getHostDir() :
+                projectProperties.getDirectory();
+
+        this.projectFolder = Path.of(pathInfo).resolve("projects");
 
         try {
             Files.createDirectories(this.projectFolder);
@@ -40,6 +47,7 @@ public class ProjectStorageService implements StorageService {
         try {
             tempDirWithPrefix = Files.createTempDirectory(this.projectFolder, "project_");
         } catch (IOException e) {
+            logger.error("Unable to create temporary File: " + e.toString());
             return Optional.empty();
         }
         return Optional.of(tempDirWithPrefix);
