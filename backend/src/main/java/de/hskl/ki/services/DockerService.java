@@ -1,6 +1,7 @@
 package de.hskl.ki.services;
 
 import de.hskl.ki.config.properties.ProjectProperties;
+import de.hskl.ki.config.properties.SpringProperties;
 import de.hskl.ki.db.document.Project;
 import de.hskl.ki.models.yaml.compose.DockerComposeYaml;
 import de.hskl.ki.models.yaml.compose.DockerNetwork;
@@ -26,6 +27,8 @@ public class DockerService {
     private final SimpleFileProcessor<DockerComposeYaml> composeYamlReader = new SimpleYamlProcessor<>(DockerComposeYaml.class);
     @Autowired
     ProjectProperties projectProperties;
+    @Autowired
+    SpringProperties springProperties;
 
     public boolean processComposeFile(Path projectDir, Project projectInfo) throws IOException {
         var location = composeYamlReader.findLocation(projectDir, "docker-compose", List.of("yaml", "yml"));
@@ -75,6 +78,11 @@ public class DockerService {
 
                         try {
                             String pathName = new File(projectDir.toFile(), volumeStr).getCanonicalFile().toString();
+
+                            if(!springProperties.hasEnvironment("dev")) {
+                                pathName = pathName.replaceAll("^" + projectProperties.getDirectory(), projectProperties.getHostDir());
+                            }
+
                             pathName = pathName.replaceAll("^([A-Za-z]):", "$1").toLowerCase();
                             return "/host_mnt/" + pathName + ":" + volumes[1];
                         } catch (IOException e) {

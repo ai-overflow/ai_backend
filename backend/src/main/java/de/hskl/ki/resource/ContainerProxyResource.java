@@ -1,5 +1,6 @@
 package de.hskl.ki.resource;
 
+import de.hskl.ki.config.properties.DockerManagerProperties;
 import de.hskl.ki.config.properties.ProjectProperties;
 import de.hskl.ki.db.document.Project;
 import de.hskl.ki.db.repository.ProjectRepository;
@@ -30,9 +31,11 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/v1/cp/")
 public class ContainerProxyResource {
 
-    private static final String CONTAINER_PROXY_URL = "http://localhost:8085/api/v1/";
+    private static final String CONTAINER_PROXY_PATH = "/api/v1/";
     @Autowired
     ProjectProperties projectProperties;
+    @Autowired
+    DockerManagerProperties dockerManagerProperties;
     SimpleFileProcessor<ContainerResponse[]> fileProcessor = new SimpleJsonProcessor<>(ContainerResponse[].class);
     @Autowired
     private ProjectRepository projectRepository;
@@ -88,7 +91,11 @@ public class ContainerProxyResource {
     }
 
     private String requestContainerURL(String method, String requestString) throws IOException {
-        URL url = new URL(CONTAINER_PROXY_URL + "container");
+        URL url = new URL("http://" +
+                dockerManagerProperties.getContainerHost() +
+                ":" + dockerManagerProperties.getContainerPort() +
+                CONTAINER_PROXY_PATH + "container");
+        System.out.println(url);
 
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod(method);
