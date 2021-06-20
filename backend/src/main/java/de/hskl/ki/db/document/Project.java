@@ -1,11 +1,13 @@
 package de.hskl.ki.db.document;
 
+import de.hskl.ki.db.document.helper.ProjectAccessInfo;
 import de.hskl.ki.models.yaml.dlconfig.ConfigDLYaml;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @Document
 public class Project {
@@ -15,7 +17,7 @@ public class Project {
     private Date creationDate = new Date(System.currentTimeMillis());
     private String gitUrl;
     private ConfigDLYaml yaml;
-    private String hostname;
+    private Map<Integer, ProjectAccessInfo> accessInfo; // TODO: Pair
     private List<String> serviceNames;
 
     public Project(String projectPath, Date creationDate, String gitUrl) {
@@ -87,19 +89,32 @@ public class Project {
         this.yaml = yaml;
     }
 
-    public String getHostname() {
-        return hostname;
-    }
-
-    public void setHostname(String hostname) {
-        this.hostname = hostname;
-    }
-
     public List<String> getServiceNames() {
         return serviceNames;
     }
 
     public void setServiceNames(List<String> serviceNames) {
         this.serviceNames = serviceNames;
+    }
+
+    public Map<Integer, ProjectAccessInfo> getAccessInfo() {
+        return accessInfo;
+    }
+
+    public void setAccessInfo(Map<Integer, ProjectAccessInfo> accessInfo) {
+        this.accessInfo = accessInfo;
+    }
+
+    @Override
+    public String toString() {
+        return "Project{" +
+                "id='" + id + '\'' +
+                ", projectPath='" + projectPath + '\'' +
+                ", creationDate=" + creationDate +
+                ", gitUrl='" + gitUrl + '\'' +
+                ", yaml=" + yaml +
+                ", accessInfo=" + accessInfo +
+                ", serviceNames=" + serviceNames +
+                '}';
     }
 }

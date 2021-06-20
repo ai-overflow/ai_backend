@@ -6,6 +6,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class ProjectProperties {
     private String directory = "/projects";
     private String hostDir = "/";
+    private String internalNetworkName = "dl_project_network";
+    private String projectContainerPrefix = "project_";
 
     public String getDirectory() {
         return directory;
@@ -21,5 +23,21 @@ public class ProjectProperties {
 
     public void setHostDir(String hostDir) {
         this.hostDir = hostDir;
+    }
+
+    public String getInternalNetworkName() {
+        return internalNetworkName;
+    }
+
+    public void setInternalNetworkName(String internalNetworkName) {
+        this.internalNetworkName = internalNetworkName;
+    }
+
+    public String getProjectContainerPrefix() {
+        return projectContainerPrefix;
+    }
+
+    public void setProjectContainerPrefix(String projectContainerPrefix) {
+        this.projectContainerPrefix = projectContainerPrefix;
     }
 }

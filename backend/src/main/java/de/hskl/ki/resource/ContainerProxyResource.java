@@ -46,7 +46,7 @@ public class ContainerProxyResource {
         if (containerResponse.isPresent()) {
             var containers = containerResponse.get();
             return Arrays.stream(containers)
-                    .filter(e -> e.getName().startsWith(ProjectStorageService.PROJECT_PREFIX))
+                    .filter(e -> e.getName().startsWith(projectProperties.getProjectContainerPrefix()))
                     .map(ContainerResponse::getName)
                     .collect(Collectors.toList());
         }

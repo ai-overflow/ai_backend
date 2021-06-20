@@ -46,7 +46,7 @@ public class ProjectStorageService implements StorageService {
 
         Path tempDirWithPrefix;
         try {
-            tempDirWithPrefix = Files.createTempDirectory(this.projectFolder, PROJECT_PREFIX);
+            tempDirWithPrefix = Files.createTempDirectory(this.projectFolder, projectProperties.getProjectContainerPrefix());
         } catch (IOException e) {
             logger.error("Unable to create temporary File: " + e.toString());
             return Optional.empty();

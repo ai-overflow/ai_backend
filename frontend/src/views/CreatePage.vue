@@ -46,7 +46,12 @@
         </v-row>
         <v-row>
           <v-col>
-            <v-select :items="pageTypes" outlined label="Page Layout" v-model="page.layout"></v-select>
+            <v-select
+              :items="pageTypes"
+              outlined
+              label="Page Layout"
+              v-model="page.layout"
+            ></v-select>
           </v-col>
         </v-row>
         <v-row>
@@ -154,11 +159,11 @@ export default {
           this.page.topLevelInput = e.data.topLevelInput;
           this.page.layout = e.data.pageLayout;
         });
-
-      PageService.getAllPageTypes().then((e) => {
-        this.pageTypes = e.data;
-      });
     }
+
+    PageService.getAllPageTypes().then((e) => {
+      this.pageTypes = e.data;
+    });
   },
   data() {
     return {
@@ -169,7 +174,7 @@ export default {
         active: true,
         projects: [],
         topLevelInput: [],
-        layout: ""
+        layout: "",
       },
       topLevelInputChips: [],
       projectsLoading: false,
