@@ -1,6 +1,7 @@
 package de.hskl.ki.config;
 
 import de.hskl.ki.config.properties.DockerManagerProperties;
+import de.hskl.ki.config.properties.InferenceProperties;
 import de.hskl.ki.config.properties.ProjectProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -10,7 +11,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @EnableWebMvc
-@EnableConfigurationProperties({ProjectProperties.class, DockerManagerProperties.class})
+@EnableConfigurationProperties({ProjectProperties.class, DockerManagerProperties.class, InferenceProperties.class})
 public class WebConfig implements WebMvcConfigurer {
 
     @Override

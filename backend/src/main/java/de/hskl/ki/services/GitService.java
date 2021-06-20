@@ -5,7 +5,6 @@ import de.hskl.ki.db.repository.ProjectRepository;
 import de.hskl.ki.models.git.GitCreationRequest;
 import de.hskl.ki.models.yaml.dlconfig.ConfigDLYaml;
 import de.hskl.ki.services.interfaces.StorageService;
-import de.hskl.ki.services.processor.SimpleFileProcessor;
 import de.hskl.ki.services.processor.SimpleYamlProcessor;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.eclipse.jgit.api.Git;
@@ -23,7 +22,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class GitService {
@@ -32,11 +32,15 @@ public class GitService {
     private final SimpleYamlProcessor<ConfigDLYaml> dlConfigYamlReader = new SimpleYamlProcessor<>(ConfigDLYaml.class);
 
     @Autowired
-    StorageService projectStorageService;
+    private StorageService projectStorageService;
     @Autowired
     private ProjectRepository projectRepository;
     @Autowired
     private DockerService dockerService;
+    @Autowired
+    private InferenceService inferenceService;
+    @Autowired
+    private ContainerProxyService containerProxyService;
 
     public Optional<Project> generateProject(GitCreationRequest repo) throws GitAPIException, IOException {
         Optional<Path> dir = projectStorageService.generateStorageFolder();
@@ -48,8 +52,12 @@ public class GitService {
                 var config = dlConfigYamlReader.readDlConfig(projectDir);
                 config.ifPresent(projectInfo::setYaml);
 
-                if(!dockerService.processComposeFile(projectDir, projectInfo)) {
+                if (!dockerService.processComposeFile(projectDir, projectInfo)) {
+                    logger.warn("Can't process Docker Compose File... aborting project generation (" + repo.getRepoUrl() + ")");
                     return Optional.empty();
+                }
+                if (!inferenceService.moveModelsToTriton(projectDir)) {
+                    logger.warn("Failed to move");
                 }
 
                 projectRepository.save(projectInfo);
@@ -60,6 +68,24 @@ public class GitService {
             return Optional.of(projectInfo);
         }
         return Optional.empty();
+    }
+
+    public boolean deleteProject(String projectId) {
+        try {
+            containerProxyService.stopContainer(projectId);
+        } catch (IOException e) {
+            return false;
+        }
+
+        Project project = projectRepository.getProjectById(projectId);
+        Path p = Paths.get(project.getProjectPath());
+        try {
+            FileUtils.deleteDirectory(p.toFile());
+            projectRepository.delete(project);
+        } catch (IOException e) {
+            return false;
+        }
+        return true;
     }
 
     private Project cloneRepository(String repoUrl, Path dir) throws GitAPIException {
@@ -98,15 +124,5 @@ public class GitService {
         return latestCommit;
     }
 
-    public boolean deleteProject(String projectId) {
-        Project project = projectRepository.getProjectById(projectId);
-        Path p = Paths.get(project.getProjectPath());
-        try {
-            FileUtils.deleteDirectory(p.toFile());
-            projectRepository.delete(project);
-        } catch (IOException e) {
-            return false;
-        }
-        return true;
-    }
+
 }
