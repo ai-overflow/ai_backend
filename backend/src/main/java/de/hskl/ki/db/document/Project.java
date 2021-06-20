@@ -19,6 +19,7 @@ public class Project {
     private ConfigDLYaml yaml;
     private Map<Integer, ProjectAccessInfo> accessInfo; // TODO: Pair
     private List<String> serviceNames;
+    private List<String> activeModels;
 
     public Project(String projectPath, Date creationDate, String gitUrl) {
         this.projectPath = projectPath;
@@ -105,6 +106,14 @@ public class Project {
         this.accessInfo = accessInfo;
     }
 
+    public List<String> getActiveModels() {
+        return activeModels;
+    }
+
+    public void setActiveModels(List<String> activeModels) {
+        this.activeModels = activeModels;
+    }
+
     @Override
     public String toString() {
         return "Project{" +
@@ -117,4 +126,6 @@ public class Project {
                 ", serviceNames=" + serviceNames +
                 '}';
     }
+
+
 }

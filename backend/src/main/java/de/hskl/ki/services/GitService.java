@@ -56,8 +56,12 @@ public class GitService {
                     logger.warn("Can't process Docker Compose File... aborting project generation (" + repo.getRepoUrl() + ")");
                     return Optional.empty();
                 }
-                if (!inferenceService.moveModelsToTriton(projectDir)) {
-                    logger.warn("Failed to move");
+                Optional<List<String>> models = inferenceService.moveModelsToTriton(projectDir);
+                if (models.isEmpty()) {
+                    logger.info("Models move failed.");
+                } else {
+                    inferenceService.activateProject(models.get());
+                    projectInfo.setActiveModels(models.get());
                 }
 
                 projectRepository.save(projectInfo);
