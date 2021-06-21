@@ -16,6 +16,7 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
+        // TODO: Replace with prod path
         registry.addMapping("/**")
                 .allowedOrigins("http://localhost:8080")
                 .allowedMethods("GET", "PUT", "POST", "UPDATE", "DELETE", "OPTIONS")

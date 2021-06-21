@@ -65,8 +65,8 @@ public class DockerService {
             var data = updateComposeFile(composeConfig.get(), projectInfo, projectDir);
             composeYamlReader.write(location.get(), composeConfig.get());
 
-            projectInfo.setAccessInfo(data.accessInfo);
-            projectInfo.setServiceNames(data.services);
+            projectInfo.setAccessInfo(data.getAccessInfo());
+            projectInfo.setServiceNames(data.getServices());
         } else {
             logger.warn("Failed to read compose config!");
             return false;
@@ -113,7 +113,7 @@ public class DockerService {
                         volumeStr = volumes[0];
 
                         try {
-                            String pathName = new File(projectDir.toFile(), volumeStr).getCanonicalFile().toString();
+                            var pathName = new File(projectDir.toFile(), volumeStr).getCanonicalFile().toString();
 
                             if (!springProperties.hasEnvironment("dev")) {
                                 pathName = pathName.replaceAll("^" + projectProperties.getDirectory(), projectProperties.getHostDir());
@@ -194,7 +194,7 @@ public class DockerService {
     private Map<Integer, ProjectAccessInfo> replacePortWithExposeAndAddHostname(DockerComposeYaml dockerComposeYaml) {
         Map<Integer, ProjectAccessInfo> portsMap = new HashMap<>();
         dockerComposeYaml.getServices().forEach((key, value) -> {
-            UUID hostname = UUID.randomUUID();
+            var hostname = UUID.randomUUID();
             // Replace Ports with expose
             List<String> ports = value.getPorts();
             Map<Integer, ProjectAccessInfo> newPorts = ports
@@ -239,12 +239,20 @@ public class DockerService {
     }
 
     private static class HostnameServicePOD {
-        public Map<Integer, ProjectAccessInfo> accessInfo;
-        public List<String> services;
+        private final Map<Integer, ProjectAccessInfo> accessInfo;
+        private final List<String> services;
 
         public HostnameServicePOD(Map<Integer, ProjectAccessInfo> accessInfo, List<String> services) {
             this.accessInfo = accessInfo;
             this.services = services;
+        }
+
+        public Map<Integer, ProjectAccessInfo> getAccessInfo() {
+            return accessInfo;
+        }
+
+        public List<String> getServices() {
+            return services;
         }
     }
 }

@@ -2,15 +2,12 @@ package de.hskl.ki.resource;
 
 import de.hskl.ki.db.document.Page;
 import de.hskl.ki.db.repository.PageRepository;
-import de.hskl.ki.db.repository.ProjectRepository;
-import de.hskl.ki.models.page.PageCreationRequest;
-import de.hskl.ki.services.GitService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.stream.Collectors;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/public/pa/")
@@ -19,9 +16,9 @@ public class PublicPageResource {
     private PageRepository pageRepository;
 
     @GetMapping("page/{id}")
-    public ResponseEntity<?> getPage(@PathVariable String id) {
+    public ResponseEntity<Page> getPage(@PathVariable String id) {
         var found = pageRepository.findById(id);
-        if(found.isPresent() && found.get().isActive())
+        if (found.isPresent() && found.get().isActive())
             return ResponseEntity.ok(found.get());
         return ResponseEntity.notFound().build();
     }

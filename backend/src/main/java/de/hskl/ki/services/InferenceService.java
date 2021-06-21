@@ -47,14 +47,14 @@ public class InferenceService {
         var modelNames = new ArrayList<String>();
         for (File model : models) {
             if(globalModelsFolder.resolve(model.getName()).toFile().exists()) {
-                logger.info("Model already exists: " + model);
+                logger.info("Model already exists: {}", model);
                 continue;
             }
             try {
                 FileUtils.moveDirectory(model, globalModelsFolder.resolve(model.getName()).toFile());
                 modelNames.add(model.getName());
             } catch (IOException e) {
-                logger.info("Failed to move model: " + model + "(" + e + ")");
+                logger.info("Failed to move model: {} ({})", model, e.toString());
             }
         }
         return Optional.of(modelNames);
@@ -65,13 +65,13 @@ public class InferenceService {
 
         models.forEach(model -> {
             try {
-                logger.info("Deleting Model: " + globalModelsFolder.resolve(model).toFile());
+                logger.info("Deleting Model: {}", globalModelsFolder.resolve(model).toFile());
                 // Safety check to prevent us from deleting the whole models folder
                 if(!globalModelsFolder.resolve(model).equals(globalModelsFolder)) {
                     FileUtils.deleteDirectory(globalModelsFolder.resolve(model).toFile());
                 }
             } catch (IOException e) {
-                logger.info("Failed to delete model: " + model + "(" + e + ")");
+                logger.info("Failed to delete model: {}({})", model, e);
             }
         });
     }
@@ -87,16 +87,16 @@ public class InferenceService {
     private void changeProjectState(List<String> models, String requestState) {
         for(String modelName: models) {
             try {
-                URL url = new URL("http://triton:8000/v2/repository/models/" + modelName + "/" + requestState);
+                var url = new URL("http://triton:8000/v2/repository/models/" + modelName + "/" + requestState);
                 URLConnection con = url.openConnection();
                 HttpURLConnection http = (HttpURLConnection) con;
                 http.setRequestMethod("POST"); // PUT is another valid option
                 http.setDoOutput(true);
                 http.getOutputStream();
-                String result = IOUtils.toString(http.getInputStream(), StandardCharsets.UTF_8);
-                System.out.println(result);
+                var result = IOUtils.toString(http.getInputStream(), StandardCharsets.UTF_8);
+                logger.info("Project change result: {}", result);
             } catch (IOException e) {
-                e.printStackTrace();
+                //TODO: Error handling
             }
         }
     }

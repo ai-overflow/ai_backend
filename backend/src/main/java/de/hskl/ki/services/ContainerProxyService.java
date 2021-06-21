@@ -87,9 +87,9 @@ public class ContainerProxyService {
     private Optional<String> containerRequest(String projectId, String method) throws IOException {
         Optional<Project> projectWrapper = projectRepository.findById(projectId);
         if (projectWrapper.isPresent()) {
-            Project project = projectWrapper.get();
-            Path path = Path.of(project.getProjectPath()).getFileName();
-            String requestString = "{\"project_folder\": \"" + path.toString() + "\"}";
+            var project = projectWrapper.get();
+            var path = Path.of(project.getProjectPath()).getFileName();
+            var requestString = "{\"project_folder\": \"" + path.toString() + "\"}";
 
             String responseStream = requestContainerURL(method, requestString);
             return Optional.of(responseStream);
@@ -116,7 +116,7 @@ public class ContainerProxyService {
      * @throws IOException if there was an error during the request
      */
     private String requestContainerURL(String method, String requestString) throws IOException {
-        URL url = new URL("http://" +
+        var url = new URL("http://" +
                 dockerManagerProperties.getContainerHost() +
                 ":" + dockerManagerProperties.getContainerPort() +
                 CONTAINER_PROXY_PATH + "container");
@@ -125,7 +125,7 @@ public class ContainerProxyService {
         con.setRequestMethod(method);
         con.setDoOutput(true);
         if (!requestString.isEmpty()) {
-            try (OutputStreamWriter os = new OutputStreamWriter(con.getOutputStream())) {
+            try (var os = new OutputStreamWriter(con.getOutputStream())) {
                 os.write(requestString);
             }
         }

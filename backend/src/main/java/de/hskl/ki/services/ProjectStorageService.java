@@ -5,14 +5,12 @@ import de.hskl.ki.config.properties.SpringProperties;
 import de.hskl.ki.services.interfaces.StorageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Optional;
 
 @Service
@@ -35,7 +33,7 @@ public class ProjectStorageService implements StorageService {
         try {
             Files.createDirectories(this.projectFolder);
         } catch (IOException e) {
-            logger.error("Unable to create project directory(" + pathInfo + ") for project");
+            logger.error("Unable to create project directory({}) for project", pathInfo);
             this.projectFolder = null;
         }
     }
@@ -48,7 +46,7 @@ public class ProjectStorageService implements StorageService {
         try {
             tempDirWithPrefix = Files.createTempDirectory(this.projectFolder, projectProperties.getProjectContainerPrefix());
         } catch (IOException e) {
-            logger.error("Unable to create temporary File: " + e.toString());
+            logger.error("Unable to create temporary File: {}", e.toString());
             return Optional.empty();
         }
         return Optional.of(tempDirWithPrefix);

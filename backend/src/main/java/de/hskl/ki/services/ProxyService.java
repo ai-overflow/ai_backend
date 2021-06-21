@@ -13,8 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -41,7 +39,7 @@ public class ProxyService {
 
         URL url;
         try {
-            URL tmpUrl = new URL(formRequest.getUrl());
+            var tmpUrl = new URL(formRequest.getUrl());
             if (!tmpUrl.getHost().equals("{{internal.HOST_URL}}")) {
                 return Optional.empty();
             }
@@ -61,7 +59,7 @@ public class ProxyService {
             con.setDoOutput(true);
 
             if (!formRequest.getMethod().equals(RequestMethods.GET)) {
-                try (OutputStream os = con.getOutputStream()) {
+                try (var os = con.getOutputStream()) {
                     byte[] input = null;
                     if (formRequest.getDataBinary() != null) {
                         input = formRequest.getDataBinary();
@@ -74,18 +72,17 @@ public class ProxyService {
                     }
                 }
             }
-            InputStream responseStream = con.getInputStream();
+            var responseStream = con.getInputStream();
             return Optional.of(IOUtils.toByteArray(responseStream));
         } catch (ConnectException e) {
-            logger.warn("Failed to connect: " + parseUrl(url, project.get()));
+            logger.warn("Failed to connect: {}", parseUrl(url, project.get()));
         } catch (IOException e) {
-            e.printStackTrace();
+            //TODO: error handling
         }
         return Optional.empty();
     }
 
     private String parseUrl(URL url, Project project) {
-        // TODO: Load hostname from DB
         if (springProperties.hasEnvironment("dev")) {
             return url.toString().replace("{{internal.HOST_URL}}", "localhost");
         } else {

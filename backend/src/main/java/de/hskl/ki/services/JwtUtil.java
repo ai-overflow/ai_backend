@@ -5,14 +5,10 @@ import de.hskl.ki.models.auth.AuthenticationResponse;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,11 +17,11 @@ import java.util.function.Function;
 @Service
 public class JwtUtil {
     public static final long EXPIRATION_DAYS = 365;
-    private final String SECRET_KEY;
+    private final String secretKey;
 
     @Inject
     public JwtUtil(SpringProperties springProperties) {
-        this.SECRET_KEY = springProperties.hasEnvironment("dev") ?
+        this.secretKey = springProperties.hasEnvironment("dev") ?
                 "CHANGEME" :
                 Utility.generateRandomString(25);
     }
@@ -39,12 +35,12 @@ public class JwtUtil {
     }
 
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = extractAllClaims(token);
+        final var claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody();
+        return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody();
     }
 
     private Boolean isTokenExpired(String token) {
@@ -64,13 +60,13 @@ public class JwtUtil {
                 .setSubject(subject)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(expirationDate)
-                .signWith(SignatureAlgorithm.HS512, SECRET_KEY)
+                .signWith(SignatureAlgorithm.HS512, secretKey)
                 .compact();
 
         return new AuthenticationResponse(token, expirationDate);
     }
 
-    public Boolean validateToken(String token, UserDetails userDetails) {
+    public boolean validateToken(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }

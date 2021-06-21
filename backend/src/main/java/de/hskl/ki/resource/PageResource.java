@@ -5,7 +5,6 @@ import de.hskl.ki.db.repository.PageRepository;
 import de.hskl.ki.db.repository.ProjectRepository;
 import de.hskl.ki.models.page.PageCreationRequest;
 import de.hskl.ki.models.page.PageLayout;
-import de.hskl.ki.services.GitService;
 import org.apache.commons.collections4.IterableUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -35,16 +34,15 @@ public class PageResource {
     }
 
     @GetMapping("page/{id}")
-    public ResponseEntity<?> getPage(@PathVariable String id) {
+    public ResponseEntity<Page> getPage(@PathVariable String id) {
         var found = pageRepository.findById(id);
-        if (found.isPresent())
-            return ResponseEntity.ok(found.get());
-        return ResponseEntity.notFound().build();
+        return found.map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping("page")
-    public ResponseEntity<?> createPage(@RequestBody PageCreationRequest page) {
-        Page p = new Page(page);
+    public ResponseEntity<Page> createPage(@RequestBody PageCreationRequest page) {
+        var p = new Page(page);
         p.setSelectedProjects(
                 IterableUtils.toList(projectRepository.findAllById(page.getSelectedProjects()))
         );
@@ -54,7 +52,7 @@ public class PageResource {
     }
 
     @DeleteMapping("page/{id}")
-    public ResponseEntity<?> deletePage(@PathVariable String id) {
+    public ResponseEntity<String> deletePage(@PathVariable String id) {
         var page = pageRepository.getPageById(id);
         if (page != null) {
             pageRepository.delete(page);
@@ -64,8 +62,8 @@ public class PageResource {
     }
 
     @PutMapping("page/{id}")
-    public ResponseEntity<?> updatePage(@PathVariable String id, @RequestBody PageCreationRequest page) {
-        Page p = new Page(page);
+    public ResponseEntity<String> updatePage(@PathVariable String id, @RequestBody PageCreationRequest page) {
+        var p = new Page(page);
         p.setId(id);
         p.setSelectedProjects(
                 IterableUtils.toList(projectRepository.findAllById(page.getSelectedProjects()))

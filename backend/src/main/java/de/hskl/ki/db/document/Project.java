@@ -17,7 +17,7 @@ public class Project {
     private Date creationDate = new Date(System.currentTimeMillis());
     private String gitUrl;
     private ConfigDLYaml yaml;
-    private Map<Integer, ProjectAccessInfo> accessInfo; // TODO: Pair
+    private Map<Integer, ProjectAccessInfo> accessInfo;
     private List<String> serviceNames;
     private List<String> activeModels;
 

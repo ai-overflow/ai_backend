@@ -1,7 +1,6 @@
 package de.hskl.ki.db.repository.implementations;
 
 import de.hskl.ki.db.document.Page;
-import de.hskl.ki.db.document.Project;
 import de.hskl.ki.db.repository.interfaces.CustomPageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoOperations;

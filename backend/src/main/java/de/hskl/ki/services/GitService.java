@@ -8,11 +8,7 @@ import de.hskl.ki.services.interfaces.StorageService;
 import de.hskl.ki.services.processor.SimpleYamlProcessor;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.ListBranchCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.Ref;
-import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.revwalk.RevWalk;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,7 +58,7 @@ public class GitService {
                 config.ifPresent(projectInfo::setYaml);
 
                 if (!dockerService.processComposeFile(projectDir, projectInfo)) {
-                    logger.warn("Can't process Docker Compose File... aborting project generation (" + repo.getRepoUrl() + ")");
+                    logger.warn("Can't process Docker Compose File... aborting project generation ({})", repo.getRepoUrl());
                     return Optional.empty();
                 }
                 Optional<List<String>> models = inferenceService.moveModelsToTriton(projectDir);
@@ -97,12 +93,12 @@ public class GitService {
             return false;
         }
 
-        Project project = projectRepository.getProjectById(projectId);
+        var project = projectRepository.getProjectById(projectId);
 
         inferenceService.deactivateProject(project.getActiveModels());
         inferenceService.deleteModelFromTritonFolder(project.getActiveModels());
 
-        Path p = Paths.get(project.getProjectPath());
+        var p = Paths.get(project.getProjectPath());
         try {
             FileUtils.deleteDirectory(p.toFile());
             projectRepository.delete(project);
@@ -121,7 +117,7 @@ public class GitService {
      * @throws GitAPIException if there was an error during this action
      */
     private Project cloneRepository(String repoUrl, Path dir) throws GitAPIException {
-        Git git = Git.cloneRepository()
+        var git = Git.cloneRepository()
                 .setURI(repoUrl)
                 .setDirectory(dir.toFile())
                 .call();
@@ -140,33 +136,7 @@ public class GitService {
         try {
             FileUtils.deleteDirectory(new File(String.valueOf(dir.resolve(".git"))));
         } catch (IOException e) {
-            e.printStackTrace();
+            //TODO: Error handling
         }
     }
-
-    /**
-     * Return latest commit of project
-     *
-     * @param git git project object
-     * @return latest commit
-     * @throws GitAPIException if there was an error during this action
-     */
-    private RevCommit getLatestCommit(Git git) throws GitAPIException {
-        RevCommit latestCommit = null;
-        try {
-            List<Ref> branches = git.branchList().setListMode(ListBranchCommand.ListMode.ALL).call();
-            RevWalk walk = new RevWalk(git.getRepository());
-            for (Ref branch : branches) {
-                RevCommit commit = walk.parseCommit(branch.getObjectId());
-                if (latestCommit == null || commit.getAuthorIdent().getWhen().compareTo(
-                        latestCommit.getAuthorIdent().getWhen()) > 0)
-                    latestCommit = commit;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return latestCommit;
-    }
-
-
 }

@@ -1,9 +1,7 @@
 package de.hskl.ki.config.properties;
 
-import de.hskl.ki.services.Utility;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import java.util.Arrays;
@@ -18,6 +16,6 @@ public class SpringProperties {
     }
 
     public boolean hasEnvironment(String name) {
-        return Arrays.asList(environment.getActiveProfiles()).contains("dev");
+        return Arrays.asList(environment.getActiveProfiles()).contains(name);
     }
 }

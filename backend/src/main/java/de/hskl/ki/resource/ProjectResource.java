@@ -28,18 +28,16 @@ public class ProjectResource {
     }
 
     @PostMapping("project")
-    public ResponseEntity<?> cloneRepo(@RequestBody GitCreationRequest repo) throws GitAPIException, IOException {
+    public ResponseEntity<Project> cloneRepo(@RequestBody GitCreationRequest repo) throws GitAPIException, IOException {
         var gitServiceResponse = gitService.generateProject(repo);
-        if (gitServiceResponse.isPresent()) {
-            return ResponseEntity.ok(gitServiceResponse.get());
-        }
-        return ResponseEntity
+        return gitServiceResponse.map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .build();
+                .build());
     }
 
     @DeleteMapping("project/{id}")
-    public ResponseEntity<?> deleteRepo(@PathVariable String id) {
+    public ResponseEntity<String> deleteRepo(@PathVariable String id) {
         if(gitService.deleteProject(id))
             return ResponseEntity.ok("ok");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
