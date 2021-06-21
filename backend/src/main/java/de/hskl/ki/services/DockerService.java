@@ -26,9 +26,9 @@ public class DockerService {
     private final Logger logger = LoggerFactory.getLogger(DockerService.class);
     private final SimpleFileProcessor<DockerComposeYaml> composeYamlReader = new SimpleYamlProcessor<>(DockerComposeYaml.class);
     @Autowired
-    ProjectProperties projectProperties;
+    private ProjectProperties projectProperties;
     @Autowired
-    SpringProperties springProperties;
+    private SpringProperties springProperties;
 
     public boolean processComposeFile(Path projectDir, Project projectInfo) throws IOException {
         var location = composeYamlReader.findLocation(projectDir, "docker-compose", List.of("yaml", "yml"));

@@ -17,7 +17,7 @@ import java.util.List;
 @RequestMapping("/api/v1/p/")
 public class ProjectResource {
     @Autowired
-    GitService gitService;
+    private GitService gitService;
 
     @Autowired
     private ProjectRepository projectRepository;

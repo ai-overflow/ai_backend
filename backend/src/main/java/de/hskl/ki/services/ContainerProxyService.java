@@ -25,11 +25,11 @@ import java.util.stream.Collectors;
 @Service
 public class ContainerProxyService {
     private static final String CONTAINER_PROXY_PATH = "/api/v1/";
-    SimpleFileProcessor<ContainerResponse[]> fileProcessor = new SimpleJsonProcessor<>(ContainerResponse[].class);
+    private final SimpleFileProcessor<ContainerResponse[]> fileProcessor = new SimpleJsonProcessor<>(ContainerResponse[].class);
     @Autowired
-    DockerManagerProperties dockerManagerProperties;
+    private DockerManagerProperties dockerManagerProperties;
     @Autowired
-    ProjectProperties projectProperties;
+    private ProjectProperties projectProperties;
     @Autowired
     private ProjectRepository projectRepository;
 
@@ -76,7 +76,6 @@ public class ContainerProxyService {
                 dockerManagerProperties.getContainerHost() +
                 ":" + dockerManagerProperties.getContainerPort() +
                 CONTAINER_PROXY_PATH + "container");
-        System.out.println(url);
 
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod(method);

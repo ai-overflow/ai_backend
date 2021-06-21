@@ -19,9 +19,6 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/v1/pa/")
 public class PageResource {
     @Autowired
-    GitService gitService;
-
-    @Autowired
     private PageRepository pageRepository;
 
     @Autowired
