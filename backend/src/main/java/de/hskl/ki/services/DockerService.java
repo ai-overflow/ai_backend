@@ -20,6 +20,9 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * This service is used to manage Docker containers
+ */
 @Service
 public class DockerService {
 
@@ -30,6 +33,26 @@ public class DockerService {
     @Autowired
     private SpringProperties springProperties;
 
+    /**
+     * Manipulates a docker-compose file to fit the format of the container manager.
+     * This will do the following:
+     * <ul>
+     *  <li>Remove Triton Service if it exists</li>
+     *  <li>Add a custom network which is shared by all containers</li>
+     *  <li>Change the docker-compose version to <strong>3</strong></li>
+     *  <li>Change the path of all volumes to an absolute path on the host file system</li>
+     *  <li>Sets a custom hostname for this service</li>
+     *  <li>Replace all exposed ports to internal exposed ports</li>
+     *  <li>Rename all services to a unique name</li>
+     *  <li>Write all changes back to the database</li>
+     * </ul>
+     *
+     * @param projectDir  Path to the project folder
+     * @param projectInfo Additional Project information
+     * @return success status
+     * @throws IOException if there was an error during any write operation.
+     *                     If this is triggered then there won't be any changes to the database
+     */
     public boolean processComposeFile(Path projectDir, Project projectInfo) throws IOException {
         var location = composeYamlReader.findLocation(projectDir, "docker-compose", List.of("yaml", "yml"));
         if (location.isEmpty()) {
@@ -51,18 +74,32 @@ public class DockerService {
         return true;
     }
 
-    public HostnameServicePOD updateComposeFile(DockerComposeYaml dockerComposeYaml, Project projectInfo, Path projectDir) {
+    /**
+     * This will make changes according to {@link #processComposeFile(Path, Project)}
+     *
+     * @param dockerComposeYaml Parsed docker compose
+     * @param projectInfo       Additional Project information
+     * @param projectDir        Path to the project folder
+     * @return New Hostname and Service information
+     */
+    private HostnameServicePOD updateComposeFile(DockerComposeYaml dockerComposeYaml, Project projectInfo, Path projectDir) {
         removeTriton(dockerComposeYaml);
         addNetworkToContainer(dockerComposeYaml);
         changeComposeVersion(dockerComposeYaml);
         changeVolumePath(dockerComposeYaml, projectDir);
 
-        Map<Integer, ProjectAccessInfo> accessInfo = replacePortWithExpose(dockerComposeYaml);
+        Map<Integer, ProjectAccessInfo> accessInfo = replacePortWithExposeAndAddHostname(dockerComposeYaml);
         ArrayList<String> services = renameService(dockerComposeYaml, projectInfo);
 
         return new HostnameServicePOD(accessInfo, services);
     }
 
+    /**
+     * Change the path of all volumes to an absolute path on the host file system
+     *
+     * @param dockerComposeYaml Parsed docker compose
+     * @param projectDir        Path to the project folder
+     */
     private void changeVolumePath(DockerComposeYaml dockerComposeYaml, Path projectDir) {
         for (var service : dockerComposeYaml.getServices().values()) {
             service.setVolumes(service.getVolumes()
@@ -92,11 +129,21 @@ public class DockerService {
         }
     }
 
+    /**
+     * Change the docker-compose version to <strong>3</strong>
+     *
+     * @param dockerComposeYaml Parsed docker compose
+     */
     private void changeComposeVersion(DockerComposeYaml dockerComposeYaml) {
         //TODO: Maybe check if version is actually 3
         dockerComposeYaml.setVersion("3");
     }
 
+    /**
+     * Add a custom network which is shared by all containers
+     *
+     * @param dockerComposeYaml Parsed docker compose
+     */
     private void addNetworkToContainer(DockerComposeYaml dockerComposeYaml) {
         String networkName = projectProperties.getInternalNetworkName();
         // Add Network to Container
@@ -110,6 +157,13 @@ public class DockerService {
         });
     }
 
+    /**
+     * Rename all services to a unique name
+     *
+     * @param dockerComposeYaml Parsed docker compose
+     * @param projectInfo       Path to the project folder
+     * @return List of new Service names
+     */
     @NotNull
     private ArrayList<String> renameService(DockerComposeYaml dockerComposeYaml, Project projectInfo) {
         String containerPrefix = projectProperties.getProjectContainerPrefix();
@@ -130,7 +184,14 @@ public class DockerService {
         return services;
     }
 
-    private Map<Integer, ProjectAccessInfo> replacePortWithExpose(DockerComposeYaml dockerComposeYaml) {
+    /**
+     * Sets a custom hostname for this service
+     * Replace all exposed ports to internal exposed ports
+     *
+     * @param dockerComposeYaml Parsed docker compose
+     * @return Previous exposed port -> (Hostname, Internal exposed port)
+     */
+    private Map<Integer, ProjectAccessInfo> replacePortWithExposeAndAddHostname(DockerComposeYaml dockerComposeYaml) {
         Map<Integer, ProjectAccessInfo> portsMap = new HashMap<>();
         dockerComposeYaml.getServices().forEach((key, value) -> {
             UUID hostname = UUID.randomUUID();
@@ -164,6 +225,11 @@ public class DockerService {
         return portsMap;
     }
 
+    /**
+     * Remove Triton Service if it exists
+     *
+     * @param dockerComposeYaml Parsed docker compose
+     */
     private void removeTriton(DockerComposeYaml dockerComposeYaml) {
         dockerComposeYaml.getServices().entrySet().removeIf(e -> {
             if (e.getValue().getImage() != null)

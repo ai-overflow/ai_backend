@@ -22,6 +22,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * This service is used to send and receive requests to a managed container
+ */
 @Service
 public class ContainerProxyService {
     private static final String CONTAINER_PROXY_PATH = "/api/v1/";
@@ -33,14 +36,35 @@ public class ContainerProxyService {
     @Autowired
     private ProjectRepository projectRepository;
 
-    public Optional<String> startContainer(String containerId) throws IOException {
-        return containerRequest(containerId, "POST");
+    /**
+     * Starts all Container which belong to the given project.
+     * This will be done with a request to the container manager
+     *
+     * @param projectId Container Project ID
+     * @return Response stream from the container manager
+     * @throws IOException if there was an error during the request
+     */
+    public Optional<String> startContainer(String projectId) throws IOException {
+        return containerRequest(projectId, "POST");
     }
 
-    public Optional<String> stopContainer(String containerId) throws IOException {
-        return containerRequest(containerId, "DELETE");
+    /**
+     * Stops all Container which belong to the given project.
+     * This will be done with a request to the container manager
+     *
+     * @param projectId Container Project ID
+     * @return Response stream from the container manager
+     * @throws IOException if there was an error during the request
+     */
+    public Optional<String> stopContainer(String projectId) throws IOException {
+        return containerRequest(projectId, "DELETE");
     }
 
+    /**
+     * Returns all docker-compose names of containers which have currently running container and are managed by the container manager
+     * @return List of all project names from the docker-compose
+     * @throws IOException if there was an error during the request
+     */
     public List<String> getAllContainer() throws IOException {
         Optional<ContainerResponse[]> containerResponse = fileProcessor.read(requestContainerURL("GET"));
         if (containerResponse.isPresent()) {
@@ -53,8 +77,15 @@ public class ContainerProxyService {
         return List.of();
     }
 
-    private Optional<String> containerRequest(String id, String method) throws IOException {
-        Optional<Project> projectWrapper = projectRepository.findById(id);
+    /**
+     * Sends a request to the container manager
+     * @param projectId id of the requested container project
+     * @param method HTTP method (GET/POST/...)
+     * @return the response stream if successfully
+     * @throws IOException if there was an error during the request
+     */
+    private Optional<String> containerRequest(String projectId, String method) throws IOException {
+        Optional<Project> projectWrapper = projectRepository.findById(projectId);
         if (projectWrapper.isPresent()) {
             Project project = projectWrapper.get();
             Path path = Path.of(project.getProjectPath()).getFileName();
@@ -67,10 +98,23 @@ public class ContainerProxyService {
         return Optional.empty();
     }
 
+    /**
+     * Helper function for HTTP request to the container manager
+     * @param method HTTP method
+     * @return request stream result
+     * @throws IOException if there was an error during the request
+     */
     private String requestContainerURL(String method) throws IOException {
         return requestContainerURL(method, "");
     }
 
+    /**
+     * Helper function for HTTP request to the container manager
+     * @param method HTTP method
+     * @param requestString HTTP body
+     * @return request stream result
+     * @throws IOException if there was an error during the request
+     */
     private String requestContainerURL(String method, String requestString) throws IOException {
         URL url = new URL("http://" +
                 dockerManagerProperties.getContainerHost() +

@@ -25,6 +25,11 @@ public class InferenceService {
     @Autowired
     private InferenceProperties inferenceProperties;
 
+    /**
+     *
+     * @param projectDir
+     * @return
+     */
     public Optional<List<String>> moveModelsToTriton(Path projectDir) {
         Path modelsFolder = projectDir.resolve("models");
         if (!modelsFolder.toFile().exists()) {

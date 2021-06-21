@@ -42,6 +42,15 @@ public class GitService {
     @Autowired
     private ContainerProxyService containerProxyService;
 
+    /**
+     * This method will download a Project from a given Git location.
+     * This will also change the project structure according to {@link DockerService#processComposeFile(Path, Project)}.
+     *
+     * @param repo Project retrieval information
+     * @return Project information
+     * @throws GitAPIException if there was an error during Git download
+     * @throws IOException     if there was an error during project handling
+     */
     public Optional<Project> generateProject(GitCreationRequest repo) throws GitAPIException, IOException {
         Optional<Path> dir = projectStorageService.generateStorageFolder();
         if (dir.isPresent()) {
@@ -74,6 +83,13 @@ public class GitService {
         return Optional.empty();
     }
 
+    /**
+     * Deletes a project by Id.
+     * This will also stop any associated containers and unload/remove all associated models from triton
+     *
+     * @param projectId project id
+     * @return action status
+     */
     public boolean deleteProject(String projectId) {
         try {
             containerProxyService.stopContainer(projectId);
@@ -96,6 +112,14 @@ public class GitService {
         return true;
     }
 
+    /**
+     * Clones a repository by url
+     *
+     * @param repoUrl url of the repository
+     * @param dir     directory to clone to
+     * @return project information stub
+     * @throws GitAPIException if there was an error during this action
+     */
     private Project cloneRepository(String repoUrl, Path dir) throws GitAPIException {
         Git git = Git.cloneRepository()
                 .setURI(repoUrl)
@@ -107,6 +131,11 @@ public class GitService {
         return new Project(String.valueOf(dir), repoUrl);
     }
 
+    /**
+     * Delete .git history of project
+     *
+     * @param dir project directory
+     */
     private void deleteGitHistory(Path dir) {
         try {
             FileUtils.deleteDirectory(new File(String.valueOf(dir.resolve(".git"))));
@@ -115,6 +144,13 @@ public class GitService {
         }
     }
 
+    /**
+     * Return latest commit of project
+     *
+     * @param git git project object
+     * @return latest commit
+     * @throws GitAPIException if there was an error during this action
+     */
     private RevCommit getLatestCommit(Git git) throws GitAPIException {
         RevCommit latestCommit = null;
         try {
