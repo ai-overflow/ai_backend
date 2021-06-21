@@ -41,6 +41,10 @@ public class InferenceService {
         var globalModelsFolder = Path.of(inferenceProperties.getModelDir());
         var modelNames = new ArrayList<String>();
         for (File model : models) {
+            if(globalModelsFolder.resolve(model.getName()).toFile().exists()) {
+                logger.info("Model already exists: " + model);
+                continue;
+            }
             try {
                 FileUtils.moveDirectory(model, globalModelsFolder.resolve(model.getName()).toFile());
                 modelNames.add(model.getName());
@@ -51,14 +55,34 @@ public class InferenceService {
         return Optional.of(modelNames);
     }
 
-    public boolean removeModelFromTriton() {
-        return false;
+    public void deleteModelFromTritonFolder(List<String> models) {
+        var globalModelsFolder = Path.of(inferenceProperties.getModelDir());
+
+        models.forEach(model -> {
+            try {
+                logger.info("Deleting Model: " + globalModelsFolder.resolve(model).toFile());
+                // Safety check to prevent us from deleting the whole models folder
+                if(!globalModelsFolder.resolve(model).equals(globalModelsFolder)) {
+                    FileUtils.deleteDirectory(globalModelsFolder.resolve(model).toFile());
+                }
+            } catch (IOException e) {
+                logger.info("Failed to delete model: " + model + "(" + e + ")");
+            }
+        });
     }
 
     public void activateProject(List<String> models) {
+        changeProjectState(models, "load");
+    }
+
+    public void deactivateProject(List<String> models) {
+        changeProjectState(models, "unload");
+    }
+
+    private void changeProjectState(List<String> models, String requestState) {
         for(String modelName: models) {
             try {
-                URL url = new URL("http://triton:8000/v2/repository/models/" + modelName + "/load");
+                URL url = new URL("http://triton:8000/v2/repository/models/" + modelName + "/" + requestState);
                 URLConnection con = url.openConnection();
                 HttpURLConnection http = (HttpURLConnection) con;
                 http.setRequestMethod("POST"); // PUT is another valid option
@@ -70,9 +94,5 @@ public class InferenceService {
                 e.printStackTrace();
             }
         }
-    }
-
-    public boolean deactivateProject() {
-        return false;
     }
 }

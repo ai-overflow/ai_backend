@@ -82,6 +82,10 @@ public class GitService {
         }
 
         Project project = projectRepository.getProjectById(projectId);
+
+        inferenceService.deactivateProject(project.getActiveModels());
+        inferenceService.deleteModelFromTritonFolder(project.getActiveModels());
+
         Path p = Paths.get(project.getProjectPath());
         try {
             FileUtils.deleteDirectory(p.toFile());
