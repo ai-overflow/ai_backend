@@ -155,9 +155,11 @@ export default {
           this.page.title = e.data.title;
           this.page.description = e.data.description;
           this.page.active = e.data.active;
-          this.page.projects = e.data.selectedProjects;
-          this.page.topLevelInput = e.data.topLevelInput;
+          this.page.projects = e.data.selectedProjects.filter((p) => !!p);
           this.page.layout = e.data.pageLayout;
+          this.page.topLevelInput = Object.fromEntries(
+            Object.entries(e.data.topLevelInput).filter((t) => this.page.projects.map(e => e.id).includes(t[0]))
+          );
         });
     }
 
@@ -212,6 +214,10 @@ export default {
       for (const el of Object.values(this.projectEntries)) {
         for (const [name, input] of Object.entries(el.yaml.input)) {
           if (input.type === inputType) {
+            if(!this.page.topLevelInput[el.id]) {
+              this.$set(this.page.topLevelInput, el.id, []);
+            }
+
             let index = this.page.topLevelInput[el.id].indexOf(name);
             if (
               index === -1 &&
@@ -263,9 +269,9 @@ export default {
     },
     getAvailableTopLevelTypes() {
       return intersection(
-        ...this.page.projects.map((e) =>
-          Object.values(e.yaml.input).map((i) => i.type)
-        )
+        ...this.page.projects
+          .filter((e) => !!e && !!e.yaml)
+          .map((e) => Object.values(e.yaml.input).map((i) => i.type))
       );
     },
     iframeSrc() {

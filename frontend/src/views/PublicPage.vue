@@ -2,7 +2,7 @@
   <div>
     <LoadingOverlay v-if="pageLoading" />
     <div v-if="!page.loadSuccess && !pageLoading">
-      There was an error loading this page...
+      Die aufgerufene Seite kann nicht geladen werden. Bitte versuchen Sie es später erneut.
       <p>{{ page.errorMessage }}</p>
     </div>
     <div v-if="page.loadSuccess && !pageLoading">
