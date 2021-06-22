@@ -6,7 +6,8 @@ import java.util.Locale;
 public class Utility {
     private static final SecureRandom secureRandom = new SecureRandom();
 
-    private Utility() {}
+    private Utility() {
+    }
 
     public static String generateRandomString(int length) {
         var upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";

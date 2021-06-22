@@ -20,7 +20,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 public class ProxyService {
@@ -80,7 +79,7 @@ public class ProxyService {
             logger.warn("Failed to connect: {}", parseUrl(url, project.get()));
             throw new AIException("Failed to connect: " + parseUrl(url, project.get()), ProxyService.class);
         } catch (IOException e) {
-            throw new AIException("Unable to request content from proxy", ProxyService.class);
+            throw new AIException("Unable to request content from proxy: " + e.getMessage(), ProxyService.class);
         }
     }
 

@@ -106,7 +106,7 @@ public class GitService {
      * @param dir     directory to clone to
      * @return project information stub
      */
-    private Project cloneRepository(String repoUrl, Path dir)  {
+    private Project cloneRepository(String repoUrl, Path dir) {
         try {
             var git = Git.cloneRepository()
                     .setURI(repoUrl)

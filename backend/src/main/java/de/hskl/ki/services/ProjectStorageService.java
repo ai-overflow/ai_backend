@@ -12,14 +12,13 @@ import javax.inject.Inject;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Optional;
 
 @Service
 public class ProjectStorageService implements StorageService {
     public static final String PROJECT_PREFIX = "project_";
     private final Logger logger = LoggerFactory.getLogger(ProjectStorageService.class);
     private final ProjectProperties projectProperties;
-    private Path projectFolder;
+    private final Path projectFolder;
 
     @Inject
     public ProjectStorageService(ProjectProperties projectProperties, SpringProperties springProperties) {
