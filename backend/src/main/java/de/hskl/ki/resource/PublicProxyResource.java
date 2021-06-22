@@ -19,7 +19,6 @@ public class PublicProxyResource {
     @PostMapping
     public ResponseEntity<byte[]> getPage(@ModelAttribute ProxyFormRequest formRequest) {
         var output = proxyService.proxyRequest(formRequest);
-        return output.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        return ResponseEntity.ok(output);
     }
 }

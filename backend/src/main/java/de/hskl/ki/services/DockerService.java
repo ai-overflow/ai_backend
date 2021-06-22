@@ -4,6 +4,7 @@ import de.hskl.ki.config.properties.ProjectProperties;
 import de.hskl.ki.config.properties.SpringProperties;
 import de.hskl.ki.db.document.Project;
 import de.hskl.ki.db.document.helper.ProjectAccessInfo;
+import de.hskl.ki.models.exceptions.AIException;
 import de.hskl.ki.models.yaml.compose.DockerComposeYaml;
 import de.hskl.ki.models.yaml.compose.DockerNetwork;
 import de.hskl.ki.services.processor.SimpleFileProcessor;
@@ -53,11 +54,11 @@ public class DockerService {
      * @throws IOException if there was an error during any write operation.
      *                     If this is triggered then there won't be any changes to the database
      */
-    public boolean processComposeFile(Path projectDir, Project projectInfo) throws IOException {
+    public void processComposeFile(Path projectDir, Project projectInfo) throws IOException {
         var location = composeYamlReader.findLocation(projectDir, "docker-compose", List.of("yaml", "yml"));
         if (location.isEmpty()) {
             logger.warn("Unable to find docker-compose file!");
-            return false;
+            throw new AIException("Unable to find docker-compose file!", DockerService.class);
         }
 
         var composeConfig = composeYamlReader.read(location.get());
@@ -69,9 +70,8 @@ public class DockerService {
             projectInfo.setServiceNames(data.getServices());
         } else {
             logger.warn("Failed to read compose config!");
-            return false;
+            throw new AIException("Failed to read compose config!", DockerService.class);
         }
-        return true;
     }
 
     /**

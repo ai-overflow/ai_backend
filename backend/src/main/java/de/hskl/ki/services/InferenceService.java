@@ -1,6 +1,7 @@
 package de.hskl.ki.services;
 
 import de.hskl.ki.config.properties.InferenceProperties;
+import de.hskl.ki.models.exceptions.AIException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -26,7 +27,6 @@ public class InferenceService {
     private InferenceProperties inferenceProperties;
 
     /**
-     *
      * @param projectDir
      * @return
      */
@@ -46,15 +46,18 @@ public class InferenceService {
         var globalModelsFolder = Path.of(inferenceProperties.getModelDir());
         var modelNames = new ArrayList<String>();
         for (File model : models) {
-            if(globalModelsFolder.resolve(model.getName()).toFile().exists()) {
+            if (globalModelsFolder.resolve(model.getName()).toFile().exists()) {
+                deleteModelFromTritonFolder(modelNames);
                 logger.info("Model already exists: {}", model);
-                continue;
+                throw new AIException("Model already exists: " + model, InferenceService.class);
             }
             try {
                 FileUtils.moveDirectory(model, globalModelsFolder.resolve(model.getName()).toFile());
                 modelNames.add(model.getName());
             } catch (IOException e) {
+                deleteModelFromTritonFolder(modelNames);
                 logger.info("Failed to move model: {} ({})", model, e.toString());
+                throw new AIException("Failed to move model: " + model + " (" + e.toString() + ")", InferenceService.class);
             }
         }
         return Optional.of(modelNames);
@@ -67,11 +70,12 @@ public class InferenceService {
             try {
                 logger.info("Deleting Model: {}", globalModelsFolder.resolve(model).toFile());
                 // Safety check to prevent us from deleting the whole models folder
-                if(!globalModelsFolder.resolve(model).equals(globalModelsFolder)) {
+                if (!globalModelsFolder.resolve(model).equals(globalModelsFolder)) {
                     FileUtils.deleteDirectory(globalModelsFolder.resolve(model).toFile());
                 }
             } catch (IOException e) {
                 logger.info("Failed to delete model: {}({})", model, e);
+                throw new AIException("Failed to delete model: " + model + "(" + e + ")", InferenceService.class);
             }
         });
     }
@@ -85,7 +89,7 @@ public class InferenceService {
     }
 
     private void changeProjectState(List<String> models, String requestState) {
-        for(String modelName: models) {
+        for (String modelName : models) {
             try {
                 var url = new URL("http://triton:8000/v2/repository/models/" + modelName + "/" + requestState);
                 URLConnection con = url.openConnection();
@@ -96,7 +100,7 @@ public class InferenceService {
                 var result = IOUtils.toString(http.getInputStream(), StandardCharsets.UTF_8);
                 logger.info("Project change result: {}", result);
             } catch (IOException e) {
-                //TODO: Error handling
+                throw new AIException("Unable to connect to triton service: " + e, InferenceService.class);
             }
         }
     }

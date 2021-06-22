@@ -2,6 +2,7 @@ package de.hskl.ki.services;
 
 import de.hskl.ki.db.document.Project;
 import de.hskl.ki.db.repository.ProjectRepository;
+import de.hskl.ki.models.exceptions.AIException;
 import de.hskl.ki.models.git.GitCreationRequest;
 import de.hskl.ki.models.yaml.dlconfig.ConfigDLYaml;
 import de.hskl.ki.services.interfaces.StorageService;
@@ -47,36 +48,30 @@ public class GitService {
      * @throws GitAPIException if there was an error during Git download
      * @throws IOException     if there was an error during project handling
      */
-    public Optional<Project> generateProject(GitCreationRequest repo) throws GitAPIException, IOException {
-        Optional<Path> dir = projectStorageService.generateStorageFolder();
-        if (dir.isPresent()) {
-            var projectDir = dir.get();
-            var projectInfo = cloneRepository(repo.getRepoUrl(), projectDir);
-            deleteGitHistory(projectDir);
-            try {
-                var config = dlConfigYamlReader.readDlConfig(projectDir);
-                config.ifPresent(projectInfo::setYaml);
+    public Project generateProject(GitCreationRequest repo) throws GitAPIException, IOException {
+        Path dir = projectStorageService.generateStorageFolder();
 
-                if (!dockerService.processComposeFile(projectDir, projectInfo)) {
-                    logger.warn("Can't process Docker Compose File... aborting project generation ({})", repo.getRepoUrl());
-                    return Optional.empty();
-                }
-                Optional<List<String>> models = inferenceService.moveModelsToTriton(projectDir);
-                if (models.isEmpty()) {
-                    logger.info("Models move failed.");
-                } else {
-                    inferenceService.activateProject(models.get());
-                    projectInfo.setActiveModels(models.get());
-                }
+        var projectInfo = cloneRepository(repo.getRepoUrl(), dir);
+        deleteGitHistory(dir);
+        try {
+            var config = dlConfigYamlReader.readDlConfig(dir);
+            config.ifPresent(projectInfo::setYaml);
 
-                projectRepository.save(projectInfo);
-            } catch (Exception e) {
-                FileUtils.deleteDirectory(projectDir.toFile());
-                throw e;
+            dockerService.processComposeFile(dir, projectInfo);
+            Optional<List<String>> models = inferenceService.moveModelsToTriton(dir);
+            if (models.isEmpty()) {
+                logger.info("Models move failed.");
+            } else {
+                inferenceService.activateProject(models.get());
+                projectInfo.setActiveModels(models.get());
             }
-            return Optional.of(projectInfo);
+
+            projectRepository.save(projectInfo);
+        } catch (Exception e) {
+            FileUtils.deleteDirectory(dir.toFile());
+            throw new AIException("There was an error during project generation: " + e.getMessage(), GitService.class);
         }
-        return Optional.empty();
+        return projectInfo;
     }
 
     /**
@@ -86,12 +81,8 @@ public class GitService {
      * @param projectId project id
      * @return action status
      */
-    public boolean deleteProject(String projectId) {
-        try {
-            containerProxyService.stopContainer(projectId);
-        } catch (IOException e) {
-            return false;
-        }
+    public void deleteProject(String projectId) {
+        containerProxyService.stopContainer(projectId);
 
         var project = projectRepository.getProjectById(projectId);
 
@@ -103,9 +94,8 @@ public class GitService {
             FileUtils.deleteDirectory(p.toFile());
             projectRepository.delete(project);
         } catch (IOException e) {
-            return false;
+            throw new AIException("Unable to delete project files", GitService.class);
         }
-        return true;
     }
 
     /**
@@ -136,7 +126,7 @@ public class GitService {
         try {
             FileUtils.deleteDirectory(new File(String.valueOf(dir.resolve(".git"))));
         } catch (IOException e) {
-            //TODO: Error handling
+            throw new AIException("Unable to delete Git history", GitService.class);
         }
     }
 }

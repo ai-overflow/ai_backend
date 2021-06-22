@@ -2,6 +2,7 @@ package de.hskl.ki.services;
 
 import de.hskl.ki.config.properties.ProjectProperties;
 import de.hskl.ki.config.properties.SpringProperties;
+import de.hskl.ki.models.exceptions.AIException;
 import de.hskl.ki.services.interfaces.StorageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,21 +35,23 @@ public class ProjectStorageService implements StorageService {
             Files.createDirectories(this.projectFolder);
         } catch (IOException e) {
             logger.error("Unable to create project directory({}) for project", pathInfo);
-            this.projectFolder = null;
+            throw new AIException("Unable to create project directory(" + pathInfo + ") for project", ProjectStorageService.class);
         }
     }
 
     @Override
-    public Optional<Path> generateStorageFolder() {
-        if (this.projectFolder == null) return Optional.empty();
+    public Path generateStorageFolder() {
+        if (this.projectFolder == null) {
+            throw new AIException("projectFolder may not be null", ProjectStorageService.class);
+        }
 
         Path tempDirWithPrefix;
         try {
             tempDirWithPrefix = Files.createTempDirectory(this.projectFolder, projectProperties.getProjectContainerPrefix());
         } catch (IOException e) {
             logger.error("Unable to create temporary File: {}", e.toString());
-            return Optional.empty();
+            throw new AIException("Unable to create temporary File: " + e, ProjectStorageService.class);
         }
-        return Optional.of(tempDirWithPrefix);
+        return tempDirWithPrefix;
     }
 }

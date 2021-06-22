@@ -24,15 +24,13 @@ public class ContainerProxyResource {
 
     @PostMapping("container/{id}")
     public ResponseEntity<String> startContainer(@PathVariable String id) throws IOException {
-        Optional<String> value = proxyService.startContainer(id);
-        return value.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+        String value = proxyService.startContainer(id);
+        return ResponseEntity.ok(value);
     }
 
     @DeleteMapping("container/{id}")
     public ResponseEntity<String> stopContainer(@PathVariable String id) throws IOException {
-        Optional<String> value = proxyService.stopContainer(id);
-        return value.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+        String value = proxyService.stopContainer(id);
+        return ResponseEntity.ok(value);
     }
 }

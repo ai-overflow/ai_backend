@@ -5,6 +5,7 @@ import de.hskl.ki.config.properties.ProjectProperties;
 import de.hskl.ki.db.document.Project;
 import de.hskl.ki.db.repository.ProjectRepository;
 import de.hskl.ki.models.container.ContainerResponse;
+import de.hskl.ki.models.exceptions.AIException;
 import de.hskl.ki.services.processor.SimpleFileProcessor;
 import de.hskl.ki.services.processor.SimpleJsonProcessor;
 import org.apache.commons.io.IOUtils;
@@ -14,6 +15,8 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -42,9 +45,8 @@ public class ContainerProxyService {
      *
      * @param projectId Container Project ID
      * @return Response stream from the container manager
-     * @throws IOException if there was an error during the request
      */
-    public Optional<String> startContainer(String projectId) throws IOException {
+    public String startContainer(String projectId) {
         return containerRequest(projectId, "POST");
     }
 
@@ -54,18 +56,17 @@ public class ContainerProxyService {
      *
      * @param projectId Container Project ID
      * @return Response stream from the container manager
-     * @throws IOException if there was an error during the request
      */
-    public Optional<String> stopContainer(String projectId) throws IOException {
+    public String stopContainer(String projectId) {
         return containerRequest(projectId, "DELETE");
     }
 
     /**
      * Returns all docker-compose names of containers which have currently running container and are managed by the container manager
+     *
      * @return List of all project names from the docker-compose
-     * @throws IOException if there was an error during the request
      */
-    public List<String> getAllContainer() throws IOException {
+    public List<String> getAllContainer() {
         Optional<ContainerResponse[]> containerResponse = fileProcessor.read(requestContainerURL("GET"));
         if (containerResponse.isPresent()) {
             var containers = containerResponse.get();
@@ -79,57 +80,63 @@ public class ContainerProxyService {
 
     /**
      * Sends a request to the container manager
+     *
      * @param projectId id of the requested container project
-     * @param method HTTP method (GET/POST/...)
+     * @param method    HTTP method (GET/POST/...)
      * @return the response stream if successfully
-     * @throws IOException if there was an error during the request
      */
-    private Optional<String> containerRequest(String projectId, String method) throws IOException {
+    private String containerRequest(String projectId, String method) {
         Optional<Project> projectWrapper = projectRepository.findById(projectId);
         if (projectWrapper.isPresent()) {
             var project = projectWrapper.get();
             var path = Path.of(project.getProjectPath()).getFileName();
             var requestString = "{\"project_folder\": \"" + path.toString() + "\"}";
 
-            String responseStream = requestContainerURL(method, requestString);
-            return Optional.of(responseStream);
+            return requestContainerURL(method, requestString);
         }
 
-        return Optional.empty();
+        throw new AIException("Couldn't find the provided project", ContainerProxyService.class);
     }
 
     /**
      * Helper function for HTTP request to the container manager
+     *
      * @param method HTTP method
      * @return request stream result
-     * @throws IOException if there was an error during the request
      */
-    private String requestContainerURL(String method) throws IOException {
+    private String requestContainerURL(String method) {
         return requestContainerURL(method, "");
     }
 
     /**
      * Helper function for HTTP request to the container manager
-     * @param method HTTP method
+     *
+     * @param method        HTTP method
      * @param requestString HTTP body
      * @return request stream result
-     * @throws IOException if there was an error during the request
      */
-    private String requestContainerURL(String method, String requestString) throws IOException {
-        var url = new URL("http://" +
-                dockerManagerProperties.getContainerHost() +
-                ":" + dockerManagerProperties.getContainerPort() +
-                CONTAINER_PROXY_PATH + "container");
+    private String requestContainerURL(String method, String requestString) {
+        try {
+            var url = new URL("http://" +
+                    dockerManagerProperties.getContainerHost() +
+                    ":" + dockerManagerProperties.getContainerPort() +
+                    CONTAINER_PROXY_PATH + "container");
 
-        HttpURLConnection con = (HttpURLConnection) url.openConnection();
-        con.setRequestMethod(method);
-        con.setDoOutput(true);
-        if (!requestString.isEmpty()) {
-            try (var os = new OutputStreamWriter(con.getOutputStream())) {
-                os.write(requestString);
+
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod(method);
+            con.setDoOutput(true);
+            if (!requestString.isEmpty()) {
+                try (var os = new OutputStreamWriter(con.getOutputStream())) {
+                    os.write(requestString);
+                }
             }
+            con.connect();
+            return IOUtils.toString(con.getInputStream(), StandardCharsets.UTF_8);
+        } catch (MalformedURLException e) {
+            throw new AIException("An internal error occurred while trying to create a request", ContainerProxyService.class);
+        } catch (IOException e) {
+            throw new AIException("An internal error occurred while trying to connect to the service", ContainerProxyService.class);
         }
-        con.connect();
-        return IOUtils.toString(con.getInputStream(), StandardCharsets.UTF_8);
     }
 }

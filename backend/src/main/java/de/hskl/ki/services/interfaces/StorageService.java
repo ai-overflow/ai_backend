@@ -4,5 +4,5 @@ import java.nio.file.Path;
 import java.util.Optional;
 
 public interface StorageService {
-    Optional<Path> generateStorageFolder();
+    Path generateStorageFolder();
 }

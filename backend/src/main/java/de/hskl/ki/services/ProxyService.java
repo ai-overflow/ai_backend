@@ -3,6 +3,7 @@ package de.hskl.ki.services;
 import de.hskl.ki.config.properties.SpringProperties;
 import de.hskl.ki.db.document.Project;
 import de.hskl.ki.db.repository.ProjectRepository;
+import de.hskl.ki.models.exceptions.AIException;
 import de.hskl.ki.models.proxy.ProxyFormRequest;
 import de.hskl.ki.models.proxy.RequestMethods;
 import org.apache.commons.io.IOUtils;
@@ -32,20 +33,21 @@ public class ProxyService {
     private SpringProperties springProperties;
 
     // TODO: FormData, Image Conversion, HTML Sanitizing
-    public Optional<byte[]> proxyRequest(ProxyFormRequest formRequest) {
+    public byte[] proxyRequest(ProxyFormRequest formRequest) {
         var project = projectRepository.findById(formRequest.getId());
-        if (project.isEmpty())
-            return Optional.empty();
+        if (project.isEmpty()) {
+            throw new AIException("Unable to find related Project", ProxyService.class);
+        }
 
         URL url;
         try {
             var tmpUrl = new URL(formRequest.getUrl());
             if (!tmpUrl.getHost().equals("{{internal.HOST_URL}}")) {
-                return Optional.empty();
+                throw new AIException("Malformed Request", ProxyService.class);
             }
             url = new URL(parseUrl(tmpUrl, project.get()));
         } catch (MalformedURLException e) {
-            return Optional.empty();
+            throw new AIException("Malformed URL", ProxyService.class);
         }
 
         try {
@@ -73,13 +75,13 @@ public class ProxyService {
                 }
             }
             var responseStream = con.getInputStream();
-            return Optional.of(IOUtils.toByteArray(responseStream));
+            return IOUtils.toByteArray(responseStream);
         } catch (ConnectException e) {
             logger.warn("Failed to connect: {}", parseUrl(url, project.get()));
+            throw new AIException("Failed to connect: " + parseUrl(url, project.get()), ProxyService.class);
         } catch (IOException e) {
-            //TODO: error handling
+            throw new AIException("Unable to request content from proxy", ProxyService.class);
         }
-        return Optional.empty();
     }
 
     private String parseUrl(URL url, Project project) {
