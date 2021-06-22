@@ -30,10 +30,7 @@ public class ProjectResource {
     @PostMapping("project")
     public ResponseEntity<Project> cloneRepo(@RequestBody GitCreationRequest repo) throws GitAPIException, IOException {
         var gitServiceResponse = gitService.generateProject(repo);
-        return gitServiceResponse.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .build());
+        return ResponseEntity.ok(gitServiceResponse);
     }
 
     @DeleteMapping("project/{id}")

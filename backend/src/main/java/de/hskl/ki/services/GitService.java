@@ -45,10 +45,8 @@ public class GitService {
      *
      * @param repo Project retrieval information
      * @return Project information
-     * @throws GitAPIException if there was an error during Git download
-     * @throws IOException     if there was an error during project handling
      */
-    public Project generateProject(GitCreationRequest repo) throws GitAPIException, IOException {
+    public Project generateProject(GitCreationRequest repo) {
         Path dir = projectStorageService.generateStorageFolder();
 
         var projectInfo = cloneRepository(repo.getRepoUrl(), dir);
@@ -68,7 +66,11 @@ public class GitService {
 
             projectRepository.save(projectInfo);
         } catch (Exception e) {
-            FileUtils.deleteDirectory(dir.toFile());
+            try {
+                FileUtils.deleteDirectory(dir.toFile());
+            } catch (IOException ioException) {
+                throw new AIException("There was an error during git clone rollback: " + e.getMessage(), GitService.class);
+            }
             throw new AIException("There was an error during project generation: " + e.getMessage(), GitService.class);
         }
         return projectInfo;
@@ -79,7 +81,6 @@ public class GitService {
      * This will also stop any associated containers and unload/remove all associated models from triton
      *
      * @param projectId project id
-     * @return action status
      */
     public void deleteProject(String projectId) {
         containerProxyService.stopContainer(projectId);
@@ -104,17 +105,20 @@ public class GitService {
      * @param repoUrl url of the repository
      * @param dir     directory to clone to
      * @return project information stub
-     * @throws GitAPIException if there was an error during this action
      */
-    private Project cloneRepository(String repoUrl, Path dir) throws GitAPIException {
-        var git = Git.cloneRepository()
-                .setURI(repoUrl)
-                .setDirectory(dir.toFile())
-                .call();
+    private Project cloneRepository(String repoUrl, Path dir)  {
+        try {
+            var git = Git.cloneRepository()
+                    .setURI(repoUrl)
+                    .setDirectory(dir.toFile())
+                    .call();
 
-        git.close();
+            git.close();
 
-        return new Project(String.valueOf(dir), repoUrl);
+            return new Project(String.valueOf(dir), repoUrl);
+        } catch (GitAPIException e) {
+            throw new AIException("Error during git clone: " + e.getMessage(), GitService.class);
+        }
     }
 
     /**

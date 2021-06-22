@@ -3,7 +3,6 @@ import AuthService from "@/service/AuthService";
 import { AuthTokenType } from "./state";
 
 export const login = ({ commit, getters }: any, loginRequest: {username: string, password: string}) => {
-    console.log("called")
     return AuthService.login(loginRequest).then(
         (jwtResponse: AuthTokenType) => {
 

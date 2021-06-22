@@ -43,7 +43,6 @@ export default Vue.extend({
       loginAction: "auth/login",
     }),
     login() {
-      console.log(this.$store);
       let loginRequest = {
         username: this.username,
         password: this.password,

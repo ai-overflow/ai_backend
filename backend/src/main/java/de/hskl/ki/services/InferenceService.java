@@ -57,7 +57,7 @@ public class InferenceService {
             } catch (IOException e) {
                 deleteModelFromTritonFolder(modelNames);
                 logger.info("Failed to move model: {} ({})", model, e.toString());
-                throw new AIException("Failed to move model: " + model + " (" + e.toString() + ")", InferenceService.class);
+                throw new AIException("Failed to move model: " + model + " (" + e.getMessage() + ")", InferenceService.class);
             }
         }
         return Optional.of(modelNames);
@@ -75,7 +75,7 @@ public class InferenceService {
                 }
             } catch (IOException e) {
                 logger.info("Failed to delete model: {}({})", model, e);
-                throw new AIException("Failed to delete model: " + model + "(" + e + ")", InferenceService.class);
+                throw new AIException("Failed to delete model: " + model + "(" + e.getMessage() + ")", InferenceService.class);
             }
         });
     }
@@ -100,7 +100,7 @@ public class InferenceService {
                 var result = IOUtils.toString(http.getInputStream(), StandardCharsets.UTF_8);
                 logger.info("Project change result: {}", result);
             } catch (IOException e) {
-                throw new AIException("Unable to connect to triton service: " + e, InferenceService.class);
+                throw new AIException("Unable to connect to triton service: " + e.getMessage(), InferenceService.class);
             }
         }
     }

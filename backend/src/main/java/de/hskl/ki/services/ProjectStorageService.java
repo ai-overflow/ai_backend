@@ -50,7 +50,7 @@ public class ProjectStorageService implements StorageService {
             tempDirWithPrefix = Files.createTempDirectory(this.projectFolder, projectProperties.getProjectContainerPrefix());
         } catch (IOException e) {
             logger.error("Unable to create temporary File: {}", e.toString());
-            throw new AIException("Unable to create temporary File: " + e, ProjectStorageService.class);
+            throw new AIException("Unable to create temporary File: " + e.getMessage(), ProjectStorageService.class);
         }
         return tempDirWithPrefix;
     }
