@@ -56,7 +56,6 @@ public class InferenceService {
                 modelNames.add(model.getName());
             } catch (IOException e) {
                 deleteModelFromTritonFolder(modelNames);
-                logger.info("Failed to move model: {} ({})", model, e.toString());
                 throw new AIException("Failed to move model: " + model + " (" + e.getMessage() + ")", InferenceService.class);
             }
         }
@@ -74,7 +73,6 @@ public class InferenceService {
                     FileUtils.deleteDirectory(globalModelsFolder.resolve(model).toFile());
                 }
             } catch (IOException e) {
-                logger.info("Failed to delete model: {}({})", model, e);
                 throw new AIException("Failed to delete model: " + model + "(" + e.getMessage() + ")", InferenceService.class);
             }
         });

@@ -2,13 +2,10 @@ package de.hskl.ki.resource;
 
 import de.hskl.ki.services.ContainerProxyService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 
 @RestControllerAdvice
 @RequestMapping("/api/v1/cp/")
@@ -18,18 +15,18 @@ public class ContainerProxyResource {
 
 
     @GetMapping("container")
-    public List<String> getAllContainer() throws IOException {
+    public List<String> getAllContainer() {
         return proxyService.getAllContainer();
     }
 
     @PostMapping("container/{id}")
-    public ResponseEntity<String> startContainer(@PathVariable String id) throws IOException {
+    public ResponseEntity<String> startContainer(@PathVariable String id) {
         String value = proxyService.startContainer(id);
         return ResponseEntity.ok(value);
     }
 
     @DeleteMapping("container/{id}")
-    public ResponseEntity<String> stopContainer(@PathVariable String id) throws IOException {
+    public ResponseEntity<String> stopContainer(@PathVariable String id) {
         String value = proxyService.stopContainer(id);
         return ResponseEntity.ok(value);
     }

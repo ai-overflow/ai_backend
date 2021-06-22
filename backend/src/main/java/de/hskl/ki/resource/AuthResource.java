@@ -2,6 +2,7 @@ package de.hskl.ki.resource;
 
 import de.hskl.ki.models.auth.AuthenticationRequest;
 import de.hskl.ki.models.auth.AuthenticationResponse;
+import de.hskl.ki.models.exceptions.AIException;
 import de.hskl.ki.services.CustomUserDetailsService;
 import de.hskl.ki.services.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,13 +32,13 @@ public class AuthResource {
 
 
     @PostMapping("/authenticate")
-    public ResponseEntity<AuthenticationResponse> createAuthenticationToken(@RequestBody AuthenticationRequest authenticationRequest) throws Exception {
+    public ResponseEntity<AuthenticationResponse> createAuthenticationToken(@RequestBody AuthenticationRequest authenticationRequest) {
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(authenticationRequest.getUsername(), authenticationRequest.getPassword())
             );
         } catch (BadCredentialsException e) {
-            throw new Exception("Incorrect username or password", e);
+            throw new AIException("Incorrect username or password", e);
         }
 
         try {

@@ -4,13 +4,10 @@ import de.hskl.ki.db.document.Project;
 import de.hskl.ki.db.repository.ProjectRepository;
 import de.hskl.ki.models.git.GitCreationRequest;
 import de.hskl.ki.services.GitService;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -28,7 +25,7 @@ public class ProjectResource {
     }
 
     @PostMapping("project")
-    public ResponseEntity<Project> cloneRepo(@RequestBody GitCreationRequest repo) throws GitAPIException, IOException {
+    public ResponseEntity<Project> cloneRepo(@RequestBody GitCreationRequest repo) {
         var gitServiceResponse = gitService.generateProject(repo);
         return ResponseEntity.ok(gitServiceResponse);
     }
