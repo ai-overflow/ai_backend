@@ -135,8 +135,8 @@ public class DockerService {
      * @param dockerComposeYaml Parsed docker compose
      */
     private void changeComposeVersion(DockerComposeYaml dockerComposeYaml) {
-        //TODO: Maybe check if version is actually 3
-        dockerComposeYaml.setVersion("3");
+        String version = dockerComposeYaml.getVersion().split("\\.")[0];
+        dockerComposeYaml.setVersion(version);
     }
 
     /**
