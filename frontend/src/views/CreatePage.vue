@@ -63,7 +63,7 @@
               :search-input.sync="searchProject"
               hide-no-data
               hide-selected
-              item-text="Description"
+              item-text="description"
               item-value="API"
               label="Projects"
               placeholder="Start typing to search Projects"
@@ -155,12 +155,19 @@ export default {
           this.page.title = e.data.title;
           this.page.description = e.data.description;
           this.page.active = e.data.active;
-          this.page.projects = e.data.selectedProjects.filter((p) => !!p);
+          this.page.projects.push(
+            ...e.data.selectedProjects
+              .filter((p) => !!p)
+              .map((p) => this.createSelectableProject(p))
+          );
           this.page.layout = e.data.pageLayout;
           this.page.topLevelInput = Object.fromEntries(
-            Object.entries(e.data.topLevelInput).filter((t) => this.page.projects.map(e => e.id).includes(t[0]))
+            Object.entries(e.data.topLevelInput).filter((t) =>
+              this.page.projects.map((e) => e.id).includes(t[0])
+            )
           );
         });
+      console.log(this.page.projects);
     }
 
     PageService.getAllPageTypes().then((e) => {
@@ -214,7 +221,7 @@ export default {
       for (const el of Object.values(this.projectEntries)) {
         for (const [name, input] of Object.entries(el.yaml.input)) {
           if (input.type === inputType) {
-            if(!this.page.topLevelInput[el.id]) {
+            if (!this.page.topLevelInput[el.id]) {
               this.$set(this.page.topLevelInput, el.id, []);
             }
 
@@ -252,19 +259,25 @@ export default {
         })
         .finally(() => (this.projectsLoading = false));
     },
+    generateDescription(e) {
+      return (
+        (e.yaml.name.length > this.descriptionLimit
+          ? e.yaml.name.slice(0, this.descriptionLimit) + "..."
+          : e.yaml.name) +
+        " (" +
+        dayjs(e.creationDate).format("DD.MM.YYYY, HH:mm") +
+        ")"
+      );
+    },
+    createSelectableProject(e) {
+      const description = this.generateDescription(e);
+      return Object.assign({}, e, { description });
+    },
   },
   computed: {
     activeProjects() {
       return this.projectEntries.map((e) => {
-        const Description =
-          (e.yaml.name.length > this.descriptionLimit
-            ? e.yaml.name.slice(0, this.descriptionLimit) + "..."
-            : e.yaml.name) +
-          " (" +
-          dayjs(e.creationDate).format("DD.MM.YYYY, HH:mm") +
-          ")";
-
-        return Object.assign({}, e, { Description });
+        return this.createSelectableProject(e);
       });
     },
     getAvailableTopLevelTypes() {

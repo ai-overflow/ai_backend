@@ -2,7 +2,6 @@ package de.hskl.ki.resource;
 
 import de.hskl.ki.db.document.Project;
 import de.hskl.ki.db.repository.ProjectRepository;
-import de.hskl.ki.models.exceptions.AIException;
 import de.hskl.ki.models.git.GitCreationRequest;
 import de.hskl.ki.services.GitService;
 import org.springframework.beans.factory.annotation.Autowired;
