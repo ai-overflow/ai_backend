@@ -19,7 +19,7 @@
             label="Search"
           >
             <template v-slot:append>
-              <v-btn color="blue lighten-2" to="/createProject">
+              <v-btn color="blue lighten-2" to="/project/create">
                 <v-icon>mdi-book-plus</v-icon>
               </v-btn>
             </template>
@@ -39,39 +39,72 @@
           >
             <v-card :disabled="!!item.disabled">
               <v-card-title class="subheading font-weight-bold">
-                <v-btn
-                  @click="deleteProject(item.id)"
-                  small
-                  plain
-                  icon
-                  color="red"
-                >
-                  <v-icon>mdi-trash-can</v-icon>
-                </v-btn>
+                <v-tooltip bottom>
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-btn
+                      @click="deleteProject(item.id)"
+                      small
+                      plain
+                      icon
+                      color="red"
+                      v-bind="attrs"
+                      v-on="on"
+                    >
+                      <v-icon>mdi-trash-can</v-icon>
+                    </v-btn>
+                  </template>
+                  <span>Delete Project</span>
+                </v-tooltip>
                 {{ item.yaml.name }}
                 <v-spacer></v-spacer>
-                <v-btn
-                  @click="stopContainer(item.id)"
-                  small
-                  plain
-                  icon
-                  v-if="checkIfRunning(item.projectPath)"
-                  color="red"
-                  :loading="statusLoading[item.id]"
-                >
-                  <v-icon> mdi-pause </v-icon>
-                </v-btn>
-                <v-btn
-                  @click="startContainer(item.id)"
-                  small
-                  plain
-                  icon
-                  v-else
-                  color="green"
-                  :loading="statusLoading[item.id]"
-                >
-                  <v-icon>mdi-play</v-icon>
-                </v-btn>
+                <v-tooltip bottom>
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-btn
+                      :to="'/project/' + item.id"
+                      small
+                      plain
+                      icon
+                      color="primary"
+                      :loading="statusLoading[item.id]"
+                      v-bind="attrs"
+                      v-on="on"
+                    >
+                      <v-icon>mdi-pencil</v-icon>
+                    </v-btn>
+                  </template>
+                  <span>Edit Project</span>
+                </v-tooltip>
+                <v-tooltip bottom>
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-btn
+                      @click="stopContainer(item.id)"
+                      small
+                      plain
+                      icon
+                      v-if="checkIfRunning(item.projectPath)"
+                      color="red"
+                      :loading="statusLoading[item.id]"
+                      v-bind="attrs"
+                      v-on="on"
+                    >
+                      <v-icon> mdi-pause </v-icon>
+                    </v-btn>
+                    <v-btn
+                      @click="startContainer(item.id)"
+                      small
+                      plain
+                      icon
+                      v-else
+                      color="green"
+                      :loading="statusLoading[item.id]"
+                      v-bind="attrs"
+                      v-on="on"
+                    >
+                      <v-icon>mdi-play</v-icon>
+                    </v-btn>
+                  </template>
+                  <span>Start/Stop Container</span>
+                </v-tooltip>
               </v-card-title>
 
               <v-divider></v-divider>
@@ -102,19 +135,40 @@
                   </v-list-item-content>
                 </v-list-item>
                 <v-list-item>
-                  <v-list-item-content> Hostname: </v-list-item-content>
+                  <v-list-item-content> Services: </v-list-item-content>
                   <v-list-item-content class="align-end">
-                    {{ item.hostname || "-" }}
+                    <ul>
+                      <li
+                        v-for="[port, service] in Object.entries(
+                          item.accessInfo
+                        )"
+                        :key="port"
+                      >
+                        <strong>{{ port }}:</strong> http://{{
+                          service.hostname
+                        }}:{{ service.port }}
+                      </li>
+                    </ul>
                   </v-list-item-content>
                 </v-list-item>
                 <v-list-item>
-                  <v-list-item-content> Service List: </v-list-item-content>
+                  <v-list-item-content> Container List: </v-list-item-content>
                   <v-list-item-content class="align-end">
                     {{
                       item.serviceNames !== null
                         ? item.serviceNames.join(", ")
                         : "-"
                     }}
+                  </v-list-item-content>
+                </v-list-item>
+                <v-list-item>
+                  <v-list-item-content> Inference Models: </v-list-item-content>
+                  <v-list-item-content class="align-end">
+                    <ul>
+                      <li v-for="model in item.activeModels" :key="model">
+                        {{ model }}
+                      </li>
+                    </ul>
                   </v-list-item-content>
                 </v-list-item>
               </v-list>

@@ -10,6 +10,11 @@ class ProjectService {
             .get(ProjectService.API_PATH + "project/", parseOptionsToAxiosConfig(options));
     }
 
+    public getProject(id: string, options?: any) {
+        return axios
+            .get(ProjectService.API_PATH + "project/" + id, parseOptionsToAxiosConfig(options));
+    }
+
     public deleteProject(id: string, options?: any) {
         return axios
             .delete(ProjectService.API_PATH + "project/" + id, parseOptionsToAxiosConfig(options));

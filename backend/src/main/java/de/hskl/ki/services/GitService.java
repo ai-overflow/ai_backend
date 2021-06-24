@@ -60,7 +60,7 @@ public class GitService {
             if (models.isEmpty()) {
                 logger.info("Models move failed.");
             } else {
-                inferenceService.activateProject(models.get());
+                inferenceService.activateModel(models.get());
                 projectInfo.setActiveModels(models.get());
             }
 
@@ -87,7 +87,7 @@ public class GitService {
 
         var project = projectRepository.getProjectById(projectId);
 
-        inferenceService.deactivateProject(project.getActiveModels());
+        inferenceService.deactivateModel(project.getActiveModels());
         inferenceService.deleteModelFromTritonFolder(project.getActiveModels());
 
         var p = Paths.get(project.getProjectPath());

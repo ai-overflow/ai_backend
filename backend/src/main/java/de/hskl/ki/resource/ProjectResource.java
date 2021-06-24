@@ -2,9 +2,11 @@ package de.hskl.ki.resource;
 
 import de.hskl.ki.db.document.Project;
 import de.hskl.ki.db.repository.ProjectRepository;
+import de.hskl.ki.models.exceptions.AIException;
 import de.hskl.ki.models.git.GitCreationRequest;
 import de.hskl.ki.services.GitService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,6 +24,13 @@ public class ProjectResource {
     @GetMapping("project")
     public List<Project> getAll() {
         return projectRepository.findAll();
+    }
+
+    @GetMapping("project/{id}")
+    public ResponseEntity<Project> getProject(@PathVariable String id) {
+        var project = projectRepository.findById(id);
+        return project.map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
     @PostMapping("project")

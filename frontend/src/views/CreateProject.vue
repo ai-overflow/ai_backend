@@ -1,6 +1,17 @@
 <template>
   <v-card class="ma-4 pa-4">
     <h2>Add Project from Git URL</h2>
+    <v-alert
+      v-if="errorMessage"
+      border="left"
+      type="error"
+      icon="mdi-cloud-alert"
+      dark
+      text
+      class="ma-10"
+    >
+      {{ errorMessage }}
+    </v-alert>
     <v-text-field
       v-model="gitUrl"
       flat
@@ -16,7 +27,6 @@
       </template>
     </v-text-field>
     <span v-if="gitData"> Cloned Repository: {{ gitData.yaml.name }} </span>
-    <span v-if="errorMessage"> Error: {{ errorMessage }} </span>
   </v-card>
 </template>
 

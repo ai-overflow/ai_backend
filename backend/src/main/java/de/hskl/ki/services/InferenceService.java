@@ -26,11 +26,16 @@ public class InferenceService {
     @Autowired
     private InferenceProperties inferenceProperties;
 
+    public Optional<List<String>> moveModelsToTriton(Path projectDir) {
+        return moveModelsToTriton(projectDir, null);
+    }
+
     /**
      * @param projectDir
+     * @param prefix
      * @return
      */
-    public Optional<List<String>> moveModelsToTriton(Path projectDir) {
+    public Optional<List<String>> moveModelsToTriton(Path projectDir, String prefix) {
         Path modelsFolder = projectDir.resolve("models");
         if (!modelsFolder.toFile().exists()) {
             logger.info("Failed to find models folder in project folder");
@@ -46,14 +51,19 @@ public class InferenceService {
         var globalModelsFolder = Path.of(inferenceProperties.getModelDir());
         var modelNames = new ArrayList<String>();
         for (File model : models) {
-            if (globalModelsFolder.resolve(model.getName()).toFile().exists()) {
+            var modelProjectName = prefix != null && !prefix.isEmpty() ?
+                    prefix + "_" + model.getName() :
+                    model.getName();
+            var modelFolderName = globalModelsFolder.resolve(modelProjectName).toFile();
+
+            if (modelFolderName.exists()) {
                 deleteModelFromTritonFolder(modelNames);
                 logger.info("Model already exists: {}", model);
                 throw new AIException("Model already exists: " + model, InferenceService.class);
             }
             try {
-                FileUtils.moveDirectory(model, globalModelsFolder.resolve(model.getName()).toFile());
-                modelNames.add(model.getName());
+                FileUtils.copyDirectory(model, modelFolderName);
+                modelNames.add(modelProjectName);
             } catch (IOException e) {
                 deleteModelFromTritonFolder(modelNames);
                 throw new AIException("Failed to move model: " + model + " (" + e.getMessage() + ")", InferenceService.class);
@@ -78,28 +88,46 @@ public class InferenceService {
         });
     }
 
-    public void activateProject(List<String> models) {
+    public void activateModel(String model) {
+        changeProjectState(List.of(model), "load");
+    }
+
+    public void activateModel(List<String> models) {
         changeProjectState(models, "load");
     }
 
-    public void deactivateProject(List<String> models) {
+    public void deactivateModel(String model) {
+        changeProjectState(List.of(model), "unload");
+    }
+
+    public void deactivateModel(List<String> models) {
         changeProjectState(models, "unload");
+    }
+
+    public String getStatus() {
+        return requestTriton("v2/repository/index");
     }
 
     private void changeProjectState(List<String> models, String requestState) {
         for (String modelName : models) {
-            try {
-                var url = new URL("http://triton:8000/v2/repository/models/" + modelName + "/" + requestState);
-                URLConnection con = url.openConnection();
-                HttpURLConnection http = (HttpURLConnection) con;
-                http.setRequestMethod("POST"); // PUT is another valid option
-                http.setDoOutput(true);
-                http.getOutputStream();
-                var result = IOUtils.toString(http.getInputStream(), StandardCharsets.UTF_8);
-                logger.info("Project change result: {}", result);
-            } catch (IOException e) {
-                throw new AIException("Unable to connect to triton service: " + e.getMessage(), InferenceService.class);
-            }
+            var requestUrl = "v2/repository/models/" + modelName + "/" + requestState;
+            requestTriton(requestUrl);
         }
+    }
+
+    private String requestTriton(String requestUrl) {
+        var result = "";
+        try {
+            var url = new URL("http://triton:8000/" + requestUrl);
+            URLConnection con = url.openConnection();
+            HttpURLConnection http = (HttpURLConnection) con;
+            http.setRequestMethod("POST"); // PUT is another valid option
+            http.setDoOutput(true);
+            http.getOutputStream();
+            result = IOUtils.toString(http.getInputStream(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new AIException("Unable to connect to triton service: " + e.getMessage(), InferenceService.class);
+        }
+        return result;
     }
 }

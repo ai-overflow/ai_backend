@@ -55,7 +55,7 @@ export const routes: Array<RouteConfig> = [
     }
   },
   {
-    path: '/createPage',
+    path: '/page/create',
     name: 'Create Page',
     component: () => import(/* webpackChunkName: "about" */ '../views/CreatePage.vue'),
     beforeEnter: checkAuthentification,
@@ -74,9 +74,18 @@ export const routes: Array<RouteConfig> = [
     }
   },
   {
-    path: '/createProject',
+    path: '/project/create',
     name: 'Create Project',
     component: () => import(/* webpackChunkName: "about" */ '../views/CreateProject.vue'),
+    beforeEnter: checkAuthentification,
+    meta: {
+      showInNav: false
+    }
+  },
+  {
+    path: '/project/:id',
+    name: 'Edit Project',
+    component: () => import(/* webpackChunkName: "about" */ '../views/EditProject.vue'),
     beforeEnter: checkAuthentification,
     meta: {
       showInNav: false

@@ -2,7 +2,7 @@
   <v-card class="ma-4 pa-4">
     <h2>Seiten</h2>
     <v-container>
-      <v-btn color="primary" to="/createPage" small>
+      <v-btn color="primary" to="/page/create" small>
         <v-icon dark left> mdi-book-plus-multiple </v-icon>
         Hinzufügen
       </v-btn>
