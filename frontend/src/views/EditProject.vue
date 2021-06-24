@@ -52,6 +52,8 @@
                           color="primary"
                           v-bind="attrs"
                           v-on="on"
+                          @click="reloadProject"
+                          :loading="reloading"
                           ><v-icon>mdi-refresh</v-icon></v-btn
                         >
                       </template>
@@ -118,7 +120,9 @@
 
                 <v-list-item-content>
                   <v-list-item-title>{{ model }}</v-list-item-title>
-                  <v-list-item-subtitle> Status: unknown </v-list-item-subtitle>
+                  <v-list-item-subtitle>
+                    Status: {{ isActiveModel(model) ? "online" : "offline" }}
+                  </v-list-item-subtitle>
                 </v-list-item-content>
               </template>
             </v-list-item>
@@ -148,30 +152,34 @@ export default {
       projectInfo: undefined,
       loading: true,
       activeModels: [],
+      reloading: false,
     };
   },
   created() {
-    this.loading = true;
-    ProjectService.getProject(this.$route.params.id)
-      .then((e) => {
-        this.projectInfo = e.data;
-        this.loading = false;
-
-        return InferenceService.getStatus();
-      })
-      .then((e) => {
-        //this.projectInfo.activeModels.findIndex(e => e.data)
-        let activeData = e.data
-          .map((d) =>
-            this.projectInfo.activeModels.findIndex(
-              (a) => d.name === a && d.state === "READY"
-            )
-          )
-          .filter((e) => e !== -1);
-        this.activeModels = activeData;
-      });
+    this.loadData();
   },
   methods: {
+    loadData() {
+      this.loading = true;
+      ProjectService.getProject(this.$route.params.id)
+        .then((e) => {
+          this.projectInfo = e.data;
+          this.loading = false;
+
+          return InferenceService.getStatus();
+        })
+        .then((e) => {
+          //this.projectInfo.activeModels.findIndex(e => e.data)
+          let activeData = e.data
+            .map((d) =>
+              this.projectInfo.activeModels.findIndex(
+                (a) => d.name === a && d.state === "READY"
+              )
+            )
+            .filter((e) => e !== -1);
+          this.activeModels = activeData;
+        });
+    },
     convertDate(date) {
       return dayjs(date).format("DD.MM.YYYY, HH:mm");
     },
@@ -181,11 +189,24 @@ export default {
     submitPage() {
       return false;
     },
+    isActiveModel(model) {
+      return this.activeModels
+        .map((e) => this.projectInfo.activeModels[e])
+        .includes(model);
+    },
+    reloadProject() {
+      this.reloading = true;
+      ProjectService.reloadProject(this.projectInfo.id, this.projectInfo.gitUrl)
+        .then((e) => {
+          this.loadData();
+        })
+        .finally((e) => (this.reloading = false));
+    },
   },
   watch: {
     activeModels: function (newValue, oldValue) {
       let addDifference = newValue.filter((x) => !oldValue.includes(x));
-      let removeDifference = newValue.filter((x) => oldValue.includes(x));
+      let removeDifference = oldValue.filter((x) => !newValue.includes(x));
       if (addDifference.length > 0) {
         let diffValue = addDifference.map(
           (e) => this.projectInfo.activeModels[e]

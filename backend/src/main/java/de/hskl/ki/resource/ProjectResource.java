@@ -43,4 +43,10 @@ public class ProjectResource {
         gitService.deleteProject(id);
         return ResponseEntity.ok("ok");
     }
+
+    @PutMapping("project/{id}/reload")
+    public ResponseEntity<String> reloadFromGit(@PathVariable String id, @RequestBody GitCreationRequest repo) {
+        gitService.reloadProject(id, repo);
+        return ResponseEntity.ok("ok");
+    }
 }

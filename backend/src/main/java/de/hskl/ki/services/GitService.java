@@ -49,6 +49,50 @@ public class GitService {
     public Project generateProject(GitCreationRequest repo) {
         Path dir = projectStorageService.generateStorageFolder();
 
+        var projectInfo = processProject(repo, dir);
+        projectRepository.save(projectInfo);
+        return projectInfo;
+    }
+
+    public void reloadProject(String projectId, GitCreationRequest repo) {
+        var project = projectRepository.findById(projectId);
+        if (project.isEmpty()) {
+            throw new AIException("Unable to find project by ID", GitService.class);
+        }
+        deleteProjectFolder(project.get());
+        var oldProject = project.get();
+        var newProject = processProject(repo, Path.of(oldProject.getProjectPath()));
+        newProject.setId(oldProject.getId());
+        projectRepository.save(newProject);
+    }
+
+    /**
+     * Deletes a project by Id.
+     * This will also stop any associated containers and unload/remove all associated models from triton
+     *
+     * @param projectId project id
+     */
+    public void deleteProject(String projectId) {
+        var project = projectRepository.getProjectById(projectId);
+        deleteProjectFolder(project);
+        projectRepository.delete(project);
+    }
+
+    private void deleteProjectFolder(Project project) {
+        containerProxyService.stopContainer(project.getId());
+
+        inferenceService.deactivateModel(project.getActiveModels());
+        inferenceService.deleteModelFromTritonFolder(project.getActiveModels());
+
+        var p = Paths.get(project.getProjectPath());
+        try {
+            FileUtils.deleteDirectory(p.toFile());
+        } catch (IOException e) {
+            throw new AIException("Unable to delete project files", GitService.class);
+        }
+    }
+
+    private Project processProject(GitCreationRequest repo, Path dir) {
         var projectInfo = cloneRepository(repo.getRepoUrl(), dir);
         deleteGitHistory(dir);
         try {
@@ -63,8 +107,6 @@ public class GitService {
                 inferenceService.activateModel(models.get());
                 projectInfo.setActiveModels(models.get());
             }
-
-            projectRepository.save(projectInfo);
         } catch (Exception e) {
             try {
                 FileUtils.deleteDirectory(dir.toFile());
@@ -74,29 +116,6 @@ public class GitService {
             throw new AIException("There was an error during project generation: " + e.getMessage(), GitService.class);
         }
         return projectInfo;
-    }
-
-    /**
-     * Deletes a project by Id.
-     * This will also stop any associated containers and unload/remove all associated models from triton
-     *
-     * @param projectId project id
-     */
-    public void deleteProject(String projectId) {
-        containerProxyService.stopContainer(projectId);
-
-        var project = projectRepository.getProjectById(projectId);
-
-        inferenceService.deactivateModel(project.getActiveModels());
-        inferenceService.deleteModelFromTritonFolder(project.getActiveModels());
-
-        var p = Paths.get(project.getProjectPath());
-        try {
-            FileUtils.deleteDirectory(p.toFile());
-            projectRepository.delete(project);
-        } catch (IOException e) {
-            throw new AIException("Unable to delete project files", GitService.class);
-        }
     }
 
     /**
