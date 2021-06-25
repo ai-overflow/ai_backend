@@ -65,7 +65,6 @@
                       plain
                       icon
                       color="primary"
-                      :loading="statusLoading[item.id]"
                       v-bind="attrs"
                       v-on="on"
                     >

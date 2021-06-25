@@ -44,6 +44,20 @@ public class ProxyService {
             if (!tmpUrl.getHost().equals("{{internal.HOST_URL}}")) {
                 throw new AIException("Malformed Request", ProxyService.class);
             }
+
+            var connection = project.get()
+                    .getYaml()
+                    .getConnection()
+                    .values()
+                    .stream()
+                    .filter((e) -> e.getPort().equals(tmpUrl.getPort()))
+                    .findFirst();
+
+            if(connection.isEmpty() ||
+                    !connection.get().getMethod().equalsIgnoreCase(formRequest.getMethod().toString())) {
+                throw new AIException("Request not found", ProxyService.class);
+            }
+
             url = new URL(parseUrl(tmpUrl, project.get()));
         } catch (MalformedURLException e) {
             throw new AIException("Malformed URL", ProxyService.class);
