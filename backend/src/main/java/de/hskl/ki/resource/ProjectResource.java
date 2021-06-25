@@ -2,8 +2,8 @@ package de.hskl.ki.resource;
 
 import de.hskl.ki.db.document.Project;
 import de.hskl.ki.db.repository.ProjectRepository;
-import de.hskl.ki.models.git.GitCreationRequest;
-import de.hskl.ki.services.GitService;
+import de.hskl.ki.models.project.ProjectCreationRequest;
+import de.hskl.ki.services.ProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +15,7 @@ import java.util.List;
 @RequestMapping("/api/v1/p/")
 public class ProjectResource {
     @Autowired
-    private GitService gitService;
+    private ProjectService projectService;
 
     @Autowired
     private ProjectRepository projectRepository;
@@ -33,20 +33,20 @@ public class ProjectResource {
     }
 
     @PostMapping("project")
-    public ResponseEntity<Project> cloneRepo(@RequestBody GitCreationRequest repo) {
-        var gitServiceResponse = gitService.generateProject(repo);
+    public ResponseEntity<Project> cloneRepo(@RequestBody ProjectCreationRequest repo) {
+        var gitServiceResponse = projectService.generateProject(repo);
         return ResponseEntity.ok(gitServiceResponse);
     }
 
     @DeleteMapping("project/{id}")
     public ResponseEntity<String> deleteRepo(@PathVariable String id) {
-        gitService.deleteProject(id);
+        projectService.deleteProject(id);
         return ResponseEntity.ok("ok");
     }
 
     @PutMapping("project/{id}/reload")
-    public ResponseEntity<String> reloadFromGit(@PathVariable String id, @RequestBody GitCreationRequest repo) {
-        gitService.reloadProject(id, repo);
+    public ResponseEntity<String> reloadFromGit(@PathVariable String id, @RequestBody ProjectCreationRequest repo) {
+        projectService.reloadProject(id, repo);
         return ResponseEntity.ok("ok");
     }
 }

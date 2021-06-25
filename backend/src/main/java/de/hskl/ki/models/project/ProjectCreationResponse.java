@@ -1,10 +1,10 @@
-package de.hskl.ki.models.git;
+package de.hskl.ki.models.project;
 
-public class GitCreationResponse {
+public class ProjectCreationResponse {
 
     private String repoPath;
 
-    public GitCreationResponse(String repoPath) {
+    public ProjectCreationResponse(String repoPath) {
         this.repoPath = repoPath;
     }
 

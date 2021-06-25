@@ -3,7 +3,7 @@ package de.hskl.ki.services;
 import de.hskl.ki.db.document.Project;
 import de.hskl.ki.db.repository.ProjectRepository;
 import de.hskl.ki.models.exceptions.AIException;
-import de.hskl.ki.models.git.GitCreationRequest;
+import de.hskl.ki.models.project.ProjectCreationRequest;
 import de.hskl.ki.models.yaml.dlconfig.ConfigDLYaml;
 import de.hskl.ki.services.interfaces.StorageService;
 import de.hskl.ki.services.processor.SimpleYamlProcessor;
@@ -23,9 +23,9 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class GitService {
+public class ProjectService {
 
-    private final Logger logger = LoggerFactory.getLogger(GitService.class);
+    private final Logger logger = LoggerFactory.getLogger(ProjectService.class);
     private final SimpleYamlProcessor<ConfigDLYaml> dlConfigYamlReader = new SimpleYamlProcessor<>(ConfigDLYaml.class);
 
     @Autowired
@@ -46,7 +46,7 @@ public class GitService {
      * @param repo Project retrieval information
      * @return Project information
      */
-    public Project generateProject(GitCreationRequest repo) {
+    public Project generateProject(ProjectCreationRequest repo) {
         Path dir = projectStorageService.generateStorageFolder();
 
         var projectInfo = processProject(repo, dir);
@@ -54,10 +54,10 @@ public class GitService {
         return projectInfo;
     }
 
-    public void reloadProject(String projectId, GitCreationRequest repo) {
+    public void reloadProject(String projectId, ProjectCreationRequest repo) {
         var project = projectRepository.findById(projectId);
         if (project.isEmpty()) {
-            throw new AIException("Unable to find project by ID", GitService.class);
+            throw new AIException("Unable to find project by ID", ProjectService.class);
         }
         deleteProjectFolder(project.get());
         var oldProject = project.get();
@@ -88,11 +88,11 @@ public class GitService {
         try {
             FileUtils.deleteDirectory(p.toFile());
         } catch (IOException e) {
-            throw new AIException("Unable to delete project files", GitService.class);
+            throw new AIException("Unable to delete project files", ProjectService.class);
         }
     }
 
-    private Project processProject(GitCreationRequest repo, Path dir) {
+    private Project processProject(ProjectCreationRequest repo, Path dir) {
         var projectInfo = cloneRepository(repo.getRepoUrl(), dir);
         deleteGitHistory(dir);
         try {
@@ -111,9 +111,9 @@ public class GitService {
             try {
                 FileUtils.deleteDirectory(dir.toFile());
             } catch (IOException ioException) {
-                throw new AIException("There was an error during git clone rollback: " + e.getMessage(), GitService.class);
+                throw new AIException("There was an error during git clone rollback: " + e.getMessage(), ProjectService.class);
             }
-            throw new AIException("There was an error during project generation: " + e.getMessage(), GitService.class);
+            throw new AIException("There was an error during project generation: " + e.getMessage(), ProjectService.class);
         }
         return projectInfo;
     }
@@ -136,7 +136,7 @@ public class GitService {
 
             return new Project(String.valueOf(dir), repoUrl);
         } catch (GitAPIException e) {
-            throw new AIException("Error during git clone: " + e.getMessage(), GitService.class);
+            throw new AIException("Error during git clone: " + e.getMessage(), ProjectService.class);
         }
     }
 
@@ -149,7 +149,7 @@ public class GitService {
         try {
             FileUtils.deleteDirectory(new File(String.valueOf(dir.resolve(".git"))));
         } catch (IOException e) {
-            throw new AIException("Unable to delete Git history", GitService.class);
+            throw new AIException("Unable to delete Git history", ProjectService.class);
         }
     }
 }

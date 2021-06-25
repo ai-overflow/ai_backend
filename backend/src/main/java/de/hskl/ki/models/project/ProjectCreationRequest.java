@@ -1,12 +1,12 @@
-package de.hskl.ki.models.git;
+package de.hskl.ki.models.project;
 
-public class GitCreationRequest {
+public class ProjectCreationRequest {
     private String repoUrl;
 
-    public GitCreationRequest() {
+    public ProjectCreationRequest() {
     }
 
-    public GitCreationRequest(String repoUrl) {
+    public ProjectCreationRequest(String repoUrl) {
         this.repoUrl = repoUrl;
     }
 
