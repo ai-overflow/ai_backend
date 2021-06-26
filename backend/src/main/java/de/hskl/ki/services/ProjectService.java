@@ -10,7 +10,6 @@ import de.hskl.ki.services.processor.SimpleYamlProcessor;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -152,23 +151,23 @@ public class ProjectService {
     }
 
     public void updateProject(String id, ProjectChangeRequest changes) {
-        Project projectValue = getProjectById(id);
+        var project = getProjectById(id);
 
-        if(projectValue.getGitUrl() != null &&
-                !projectValue.getGitUrl().isEmpty() &&
-                !projectValue.getGitUrl().equals(changes.getRepoUrl())) {
-            projectValue = reloadProject(id, changes.getRepoUrl());
+        if(project.getGitUrl() != null &&
+                !project.getGitUrl().isEmpty() &&
+                !project.getGitUrl().equals(changes.getRepoUrl())) {
+            project = reloadProject(id, changes.getRepoUrl());
         }
 
-        var yaml = projectValue.getYaml();
+        var yaml = project.getYaml();
         yaml.setName(changes.getName());
         yaml.setDescription(changes.getDescription());
-        projectValue.setYaml(yaml);
-        projectRepository.save(projectValue);
+        project.setYaml(yaml);
+        projectRepository.save(project);
     }
 
     public void removeTritonModels(String id) {
-        Project project = getProjectById(id);
+        var project = getProjectById(id);
 
         inferenceService.deactivateModel(project.getActiveModels());
         inferenceService.deleteModelFromTritonFolder(project.getActiveModels());

@@ -59,7 +59,6 @@ public class ProjectResource {
 
     @PutMapping("project/{id}")
     public ResponseEntity<String> updateProject(@PathVariable String id, @RequestBody ProjectChangeRequest changes) {
-        System.out.println(changes);
         projectService.updateProject(id, changes);
         return ResponseEntity.ok("ok");
     }

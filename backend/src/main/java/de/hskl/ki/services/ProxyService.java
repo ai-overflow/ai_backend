@@ -50,7 +50,7 @@ public class ProxyService {
                     .getConnection()
                     .values()
                     .stream()
-                    .filter((e) -> e.getPort().equals(tmpUrl.getPort()))
+                    .filter(e -> e.getPort().equals(tmpUrl.getPort()))
                     .findFirst();
 
             if(connection.isEmpty() ||
