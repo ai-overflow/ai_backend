@@ -181,6 +181,11 @@ public class ProjectService {
         projectRepository.save(project);
     }
 
+    public void activateAllModels() {
+        projectRepository.findAll().forEach(project -> inferenceService.activateModel(project.getActiveModels()));
+
+    }
+
     private Project getProjectById(String id) {
         var project = projectRepository.findById(id);
         if (project.isEmpty()) {
