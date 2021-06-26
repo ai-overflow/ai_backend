@@ -60,13 +60,14 @@
                         <v-btn
                           x-large
                           dark
-                          color="primary"
+                          color="red"
                           v-bind="attrs"
                           v-on="on"
                           @click="reloadProject"
                           :loading="reloading"
-                          ><v-icon>mdi-refresh</v-icon></v-btn
                         >
+                          <v-icon>mdi-refresh</v-icon>
+                        </v-btn>
                       </template>
                       <span>Reload Project from Git URL</span>
                     </v-tooltip>
@@ -144,6 +145,31 @@
             </v-list-item>
           </v-list-item-group>
         </v-list>
+        <v-row>
+          <v-col>
+            <v-tooltip bottom>
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn
+                  :dark="projectInfo.yaml.tritonEnabled"
+                  color="red"
+                  @click="removeTriton"
+                  :loading="reloading"
+                  v-bind="attrs"
+                  v-on="on"
+                  :disabled="!projectInfo.yaml.tritonEnabled"
+                >
+                  <v-icon left>mdi-trash-can</v-icon>
+                  {{
+                    projectInfo.yaml.tritonEnabled
+                      ? "Disable Triton"
+                      : "Triton disabled for project"
+                  }}
+                </v-btn>
+              </template>
+              <span>This is an destructive action and can not be undone!</span>
+            </v-tooltip>
+          </v-col>
+        </v-row>
       </v-container>
     </div>
     <div v-else class="text-center">
@@ -242,16 +268,26 @@ export default {
           this.loadData();
         })
         .catch((e) => {
-          this.errorMessage = e.response.data?.message;
+          this.errorMessage = e.response?.data?.message ?? e;
         })
         .finally((e) => (this.reloading = false));
+    },
+    removeTriton() {
+      ProjectService.removeTriton(this.projectInfo.id)
+        .catch((e) => {
+          this.errorMessage = e.response.data?.message;
+        })
+        .then((e) => {
+          this.projectInfo.yaml.tritonEnabled = false;
+          this.projectInfo.activeModels = [];
+        });
     },
   },
   watch: {
     activeModels: function (newValue, oldValue) {
-      if(this.activeModelIgnoreUpdate) {
+      if (this.activeModelIgnoreUpdate) {
         this.activeModelIgnoreUpdate = false;
-         return;
+        return;
       }
       let addDifference = newValue.filter((x) => !oldValue.includes(x));
       let removeDifference = oldValue.filter((x) => !newValue.includes(x));
@@ -267,12 +303,12 @@ export default {
         );
         request = InferenceService.deactivateModel(diffValue[0]);
       }
-      request
-        .catch((e) => {
-          this.activeModelIgnoreUpdate = true;
-          this.activeModels = oldValue;
-          this.errorMessage = e.response.data?.message;
-        })
+      if (!request) return;
+      request.catch((e) => {
+        this.activeModelIgnoreUpdate = true;
+        this.activeModels = oldValue;
+        this.errorMessage = e.response.data?.message;
+      });
     },
   },
 };

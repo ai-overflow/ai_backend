@@ -15,6 +15,11 @@ public class ConfigDLYaml {
     private Map<String, YamlInput> input;
     private Map<String, YamlOutput> output;
 
+    private boolean tritonEnabled = true;
+
+    public ConfigDLYaml() {
+    }
+
     public ConfigDLYaml(String entryPoint, String name, String description, List<String> authors, Map<String, YamlConnection> connection, Map<String, YamlInput> input, Map<String, YamlOutput> output) {
         this.entryPoint = entryPoint;
         this.name = name;
@@ -23,6 +28,17 @@ public class ConfigDLYaml {
         this.connection = connection;
         this.input = input;
         this.output = output;
+    }
+
+    public ConfigDLYaml(String entryPoint, String name, String description, List<String> authors, Map<String, YamlConnection> connection, Map<String, YamlInput> input, Map<String, YamlOutput> output, boolean tritonEnabled) {
+        this.entryPoint = entryPoint;
+        this.name = name;
+        this.description = description;
+        this.authors = authors;
+        this.connection = connection;
+        this.input = input;
+        this.output = output;
+        this.tritonEnabled = tritonEnabled;
     }
 
     public String getEntryPoint() {
@@ -81,6 +97,14 @@ public class ConfigDLYaml {
         this.output = output;
     }
 
+    public boolean isTritonEnabled() {
+        return tritonEnabled;
+    }
+
+    public void setTritonEnabled(boolean tritonEnabled) {
+        this.tritonEnabled = tritonEnabled;
+    }
+
     @Override
     public String toString() {
         return "ConfigDLYaml{" +
@@ -91,6 +115,7 @@ public class ConfigDLYaml {
                 ", connection=" + connection +
                 ", input=" + input +
                 ", output=" + output +
+                ", tritonEnabled=" + tritonEnabled +
                 '}';
     }
 }

@@ -10,6 +10,7 @@ import de.hskl.ki.services.processor.SimpleYamlProcessor;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -55,14 +57,10 @@ public class ProjectService {
     }
 
     public Project reloadProject(String projectId, String repo) {
-        var project = projectRepository.findById(projectId);
-        if (project.isEmpty()) {
-            throw new AIException("Unable to find project by ID", ProjectService.class);
-        }
-        deleteProjectFolder(project.get());
-        var oldProject = project.get();
-        var newProject = processProject(repo, Path.of(oldProject.getProjectPath()));
-        newProject.setId(oldProject.getId());
+        var project = getProjectById(projectId);
+        deleteProjectFolder(project);
+        var newProject = processProject(repo, Path.of(project.getProjectPath()));
+        newProject.setId(project.getId());
         return projectRepository.save(newProject);
     }
 
@@ -154,11 +152,7 @@ public class ProjectService {
     }
 
     public void updateProject(String id, ProjectChangeRequest changes) {
-        var project = projectRepository.findById(id);
-        if (project.isEmpty()) {
-            throw new AIException("Unable to find project by ID", ProjectService.class);
-        }
-        var projectValue = project.get();
+        Project projectValue = getProjectById(id);
 
         if(projectValue.getGitUrl() != null &&
                 !projectValue.getGitUrl().isEmpty() &&
@@ -171,5 +165,27 @@ public class ProjectService {
         yaml.setDescription(changes.getDescription());
         projectValue.setYaml(yaml);
         projectRepository.save(projectValue);
+    }
+
+    public void removeTritonModels(String id) {
+        Project project = getProjectById(id);
+
+        inferenceService.deactivateModel(project.getActiveModels());
+        inferenceService.deleteModelFromTritonFolder(project.getActiveModels());
+
+        var yaml = project.getYaml();
+        yaml.setTritonEnabled(false);
+        project.setYaml(yaml);
+
+        project.setActiveModels(new ArrayList<>());
+        projectRepository.save(project);
+    }
+
+    private Project getProjectById(String id) {
+        var project = projectRepository.findById(id);
+        if (project.isEmpty()) {
+            throw new AIException("Unable to find project by ID", ProjectService.class);
+        }
+        return project.get();
     }
 }

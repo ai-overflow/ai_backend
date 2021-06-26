@@ -45,6 +45,12 @@ public class ProjectResource {
         return ResponseEntity.ok("ok");
     }
 
+    @DeleteMapping("project/{id}/triton")
+    public ResponseEntity<String> removeTritonModels(@PathVariable String id) {
+        projectService.removeTritonModels(id);
+        return ResponseEntity.ok("ok");
+    }
+
     @PutMapping("project/{id}/reload")
     public ResponseEntity<String> reloadFromGit(@PathVariable String id, @RequestBody ProjectCreationRequest repo) {
         projectService.reloadProject(id, repo.getRepoUrl());

@@ -40,6 +40,11 @@ class ProjectService {
         return axios
             .put(ProjectService.API_PATH + "project/" + id, parseOptionsToAxiosConfig(options));
     }
+
+    public removeTriton(id: string, options?: any) {
+        return axios
+            .delete(ProjectService.API_PATH + "project/" + id + "/triton", parseOptionsToAxiosConfig(options));
+    }
 }
 
 export default new ProjectService();
