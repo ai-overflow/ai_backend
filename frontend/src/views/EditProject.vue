@@ -2,6 +2,17 @@
   <v-card class="ma-4 pa-4">
     <div v-if="!!projectInfo">
       <h2>{{ projectInfo.yaml.name }}</h2>
+      <v-alert
+        v-if="errorMessage"
+        border="left"
+        type="error"
+        icon="mdi-cloud-alert"
+        dark
+        text
+        class="ma-10"
+      >
+        {{ errorMessage }}
+      </v-alert>
       <v-container>
         <form>
           <v-row>
@@ -85,7 +96,12 @@
           </v-row>
           <v-row>
             <v-col>
-              <v-btn color="primary" @click="submitPage">Submit</v-btn>
+              <v-btn
+                color="primary"
+                @click="submitPage"
+                :loading="submitLoading"
+                >Submit</v-btn
+              >
             </v-col>
           </v-row>
         </form>
@@ -153,6 +169,8 @@ export default {
       loading: true,
       activeModels: [],
       reloading: false,
+      submitLoading: false,
+      errorMessage: undefined,
     };
   },
   created() {
@@ -187,6 +205,23 @@ export default {
       console.log(name);
     },
     submitPage() {
+      this.submitLoading = true;
+      let value = {
+        repoUrl: this.projectInfo.gitUrl,
+        name: this.projectInfo.yaml.name,
+        description: this.projectInfo.yaml.description,
+      };
+
+      ProjectService.updateProject(this.$route.params.id, value)
+        .then((e) => {
+          console.log(e);
+        })
+        .catch((e) => {
+          this.errorMessage = e.response.data?.message;
+        })
+        .finally(() => {
+          this.submitLoading = false;
+        });
       return false;
     },
     isActiveModel(model) {
@@ -199,6 +234,9 @@ export default {
       ProjectService.reloadProject(this.projectInfo.id, this.projectInfo.gitUrl)
         .then((e) => {
           this.loadData();
+        })
+        .catch((e) => {
+          this.errorMessage = e.response.data?.message;
         })
         .finally((e) => (this.reloading = false));
     },

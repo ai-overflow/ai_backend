@@ -3,7 +3,7 @@ package de.hskl.ki.services;
 import de.hskl.ki.db.document.Project;
 import de.hskl.ki.db.repository.ProjectRepository;
 import de.hskl.ki.models.exceptions.AIException;
-import de.hskl.ki.models.project.ProjectCreationRequest;
+import de.hskl.ki.models.project.ProjectChangeRequest;
 import de.hskl.ki.models.yaml.dlconfig.ConfigDLYaml;
 import de.hskl.ki.services.interfaces.StorageService;
 import de.hskl.ki.services.processor.SimpleYamlProcessor;
@@ -46,7 +46,7 @@ public class ProjectService {
      * @param repo Project retrieval information
      * @return Project information
      */
-    public Project generateProject(ProjectCreationRequest repo) {
+    public Project generateProject(String repo) {
         Path dir = projectStorageService.generateStorageFolder();
 
         var projectInfo = processProject(repo, dir);
@@ -54,7 +54,7 @@ public class ProjectService {
         return projectInfo;
     }
 
-    public void reloadProject(String projectId, ProjectCreationRequest repo) {
+    public Project reloadProject(String projectId, String repo) {
         var project = projectRepository.findById(projectId);
         if (project.isEmpty()) {
             throw new AIException("Unable to find project by ID", ProjectService.class);
@@ -63,7 +63,7 @@ public class ProjectService {
         var oldProject = project.get();
         var newProject = processProject(repo, Path.of(oldProject.getProjectPath()));
         newProject.setId(oldProject.getId());
-        projectRepository.save(newProject);
+        return projectRepository.save(newProject);
     }
 
     /**
@@ -92,8 +92,8 @@ public class ProjectService {
         }
     }
 
-    private Project processProject(ProjectCreationRequest repo, Path dir) {
-        var projectInfo = cloneRepository(repo.getRepoUrl(), dir);
+    private Project processProject(String repo, Path dir) {
+        var projectInfo = cloneRepository(repo, dir);
         deleteGitHistory(dir);
         try {
             var config = dlConfigYamlReader.readDlConfig(dir);
@@ -151,5 +151,25 @@ public class ProjectService {
         } catch (IOException e) {
             throw new AIException("Unable to delete Git history", ProjectService.class);
         }
+    }
+
+    public void updateProject(String id, ProjectChangeRequest changes) {
+        var project = projectRepository.findById(id);
+        if (project.isEmpty()) {
+            throw new AIException("Unable to find project by ID", ProjectService.class);
+        }
+        var projectValue = project.get();
+
+        if(projectValue.getGitUrl() != null &&
+                !projectValue.getGitUrl().isEmpty() &&
+                !projectValue.getGitUrl().equals(changes.getRepoUrl())) {
+            projectValue = reloadProject(id, changes.getRepoUrl());
+        }
+
+        var yaml = projectValue.getYaml();
+        yaml.setName(changes.getName());
+        yaml.setDescription(changes.getDescription());
+        projectValue.setYaml(yaml);
+        projectRepository.save(projectValue);
     }
 }

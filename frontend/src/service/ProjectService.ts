@@ -33,6 +33,13 @@ class ProjectService {
         return axios
             .put(ProjectService.API_PATH + "project/" + id + "/reload", parseOptionsToAxiosConfig(options));
     }
+
+    public updateProject(id: string, changes: {repoUrl: string, name: string, description: string}, options?: any) {
+        options = {...options, ...changes};
+
+        return axios
+            .put(ProjectService.API_PATH + "project/" + id, parseOptionsToAxiosConfig(options));
+    }
 }
 
 export default new ProjectService();

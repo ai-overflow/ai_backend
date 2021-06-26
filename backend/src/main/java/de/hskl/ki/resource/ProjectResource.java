@@ -2,6 +2,7 @@ package de.hskl.ki.resource;
 
 import de.hskl.ki.db.document.Project;
 import de.hskl.ki.db.repository.ProjectRepository;
+import de.hskl.ki.models.project.ProjectChangeRequest;
 import de.hskl.ki.models.project.ProjectCreationRequest;
 import de.hskl.ki.services.ProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +35,7 @@ public class ProjectResource {
 
     @PostMapping("project")
     public ResponseEntity<Project> cloneRepo(@RequestBody ProjectCreationRequest repo) {
-        var gitServiceResponse = projectService.generateProject(repo);
+        var gitServiceResponse = projectService.generateProject(repo.getRepoUrl());
         return ResponseEntity.ok(gitServiceResponse);
     }
 
@@ -46,7 +47,14 @@ public class ProjectResource {
 
     @PutMapping("project/{id}/reload")
     public ResponseEntity<String> reloadFromGit(@PathVariable String id, @RequestBody ProjectCreationRequest repo) {
-        projectService.reloadProject(id, repo);
+        projectService.reloadProject(id, repo.getRepoUrl());
+        return ResponseEntity.ok("ok");
+    }
+
+    @PutMapping("project/{id}")
+    public ResponseEntity<String> updateProject(@PathVariable String id, @RequestBody ProjectChangeRequest changes) {
+        System.out.println(changes);
+        projectService.updateProject(id, changes);
         return ResponseEntity.ok("ok");
     }
 }
