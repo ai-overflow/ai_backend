@@ -171,6 +171,7 @@ export default {
       reloading: false,
       submitLoading: false,
       errorMessage: undefined,
+      activeModelIgnoreUpdate: false,
     };
   },
   created() {
@@ -186,7 +187,11 @@ export default {
 
           return InferenceService.getStatus();
         })
+        .catch((e) => {
+          this.errorMessage = e.response.data?.message;
+        })
         .then((e) => {
+          this.errorMessage = undefined;
           //this.projectInfo.activeModels.findIndex(e => e.data)
           let activeData = e.data
             .map((d) =>
@@ -214,7 +219,7 @@ export default {
 
       ProjectService.updateProject(this.$route.params.id, value)
         .then((e) => {
-          console.log(e);
+          this.errorMessage = undefined;
         })
         .catch((e) => {
           this.errorMessage = e.response.data?.message;
@@ -233,6 +238,7 @@ export default {
       this.reloading = true;
       ProjectService.reloadProject(this.projectInfo.id, this.projectInfo.gitUrl)
         .then((e) => {
+          this.errorMessage = undefined;
           this.loadData();
         })
         .catch((e) => {
@@ -243,19 +249,30 @@ export default {
   },
   watch: {
     activeModels: function (newValue, oldValue) {
+      if(this.activeModelIgnoreUpdate) {
+        this.activeModelIgnoreUpdate = false;
+         return;
+      }
       let addDifference = newValue.filter((x) => !oldValue.includes(x));
       let removeDifference = oldValue.filter((x) => !newValue.includes(x));
+      let request;
       if (addDifference.length > 0) {
         let diffValue = addDifference.map(
           (e) => this.projectInfo.activeModels[e]
         );
-        InferenceService.activateModel(diffValue[0]);
+        request = InferenceService.activateModel(diffValue[0]);
       } else if (removeDifference.length > 0) {
         let diffValue = removeDifference.map(
           (e) => this.projectInfo.activeModels[e]
         );
-        InferenceService.deactivateModel(diffValue[0]);
+        request = InferenceService.deactivateModel(diffValue[0]);
       }
+      request
+        .catch((e) => {
+          this.activeModelIgnoreUpdate = true;
+          this.activeModels = oldValue;
+          this.errorMessage = e.response.data?.message;
+        })
     },
   },
 };
