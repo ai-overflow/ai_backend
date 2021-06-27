@@ -1,5 +1,6 @@
 package de.hskl.ki.services.startup;
 
+import de.hskl.ki.config.properties.SpringProperties;
 import de.hskl.ki.services.ProjectService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,9 +17,15 @@ public class InferenceStartupService {
     @Autowired
     ProjectService projectService;
 
+
+    @Autowired
+    SpringProperties springProperties;
+
     @PostConstruct
     public void init() {
-        logger.info("Starting up Inference Service");
-        projectService.activateAllModels();
+        if (!springProperties.hasEnvironment("dev")) {
+            logger.info("Starting up Inference Service");
+            projectService.activateAllModels();
+        }
     }
 }

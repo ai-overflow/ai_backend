@@ -2,7 +2,9 @@ package de.hskl.ki.services;
 
 import de.hskl.ki.config.properties.SpringProperties;
 import de.hskl.ki.db.document.Project;
+import de.hskl.ki.db.document.helper.StatisticsEntry;
 import de.hskl.ki.db.repository.ProjectRepository;
+import de.hskl.ki.db.repository.StatisticsRepository;
 import de.hskl.ki.models.exceptions.AIException;
 import de.hskl.ki.models.proxy.ProxyFormRequest;
 import de.hskl.ki.models.proxy.RequestMethods;
@@ -19,6 +21,10 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Map;
 
 @Service
@@ -27,6 +33,9 @@ public class ProxyService {
 
     @Autowired
     private ProjectRepository projectRepository;
+
+    @Autowired
+    private StatisticsRepository statisticsRepository;
 
     @Autowired
     private SpringProperties springProperties;
@@ -87,14 +96,24 @@ public class ProxyService {
                     }
                 }
             }
-            var responseStream = con.getInputStream();
-            return IOUtils.toByteArray(responseStream);
+            Instant start = Instant.now();
+            try(var responseStream = con.getInputStream()) {
+                Instant stop = Instant.now();
+
+                addToStatistics(project.get(), start, stop);
+                return IOUtils.toByteArray(responseStream);
+            }
         } catch (ConnectException e) {
             logger.warn("Failed to connect: {}", parseUrl(url, project.get()));
             throw new AIException("Failed to connect: " + parseUrl(url, project.get()), ProxyService.class);
         } catch (IOException e) {
             throw new AIException("Unable to request content from proxy: " + e.getMessage(), ProxyService.class);
         }
+    }
+
+    private void addToStatistics(Project project, Instant start, Instant stop) {
+        var entry = new StatisticsEntry(Timestamp.from(Instant.now()), Duration.between(start, stop).toMillis());
+        statisticsRepository.addEntry(project.getId(), entry);
     }
 
     private String parseUrl(URL url, Project project) {
