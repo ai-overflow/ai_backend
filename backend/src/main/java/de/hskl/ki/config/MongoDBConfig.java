@@ -6,7 +6,6 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import de.hskl.ki.db.document.User;
 import de.hskl.ki.db.repository.UserRepository;
-import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;

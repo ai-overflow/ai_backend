@@ -1,7 +1,7 @@
 <template>
   <v-card class="ma-4 pa-4">
-    <h2>{{ $route.params.id ? page.title : "Neue Seite erstellen" }}</h2>
-    <v-container v-if="$route.params.id">
+    <h2>{{ $route.params.id  !== "create" ? page.title : "Neue Seite erstellen" }}</h2>
+    <v-container v-if="$route.params.id  !== 'create'">
       <v-text-field
         :value="'<iframe src=\'' + iframeSrc + '\' />'"
         label="HTML"
@@ -148,7 +148,7 @@ import { intersection } from "@/utility/utils";
 
 export default {
   created() {
-    if (this.$route.params.id) {
+    if (this.$route.params.id !== "create") {
       this.loadProjects()
         .then(() => PageService.getPage(this.$route.params.id))
         .then((e) => {
@@ -204,7 +204,7 @@ export default {
         selectedProjects: this.page.projects.map((e) => e.id),
       };
 
-      if (this.$route.params.id) {
+      if (this.$route.params.id !== "create") {
         PageService.updatePage(this.$route.params.id, pageObj).then(() => {
           console.log("TODO: Show done message");
           this.$router.push("/pages");
