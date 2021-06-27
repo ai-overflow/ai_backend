@@ -7,11 +7,17 @@
       outlined
       chips
       small-chips
-      label="Outlined"
+      label="Select project to inspect"
       return-object
     ></v-autocomplete>
-    {{ statData }}
-    <div v-if="datacollection">
+    <div v-if="statData">
+      <h3>Project Executions</h3>
+      <apexchart
+        width="500"
+        type="bar"
+        :options="options"
+        :series="series"
+      ></apexchart>
     </div>
   </v-card>
 </template>
@@ -20,19 +26,35 @@
 import Vue from "vue";
 import StatisticService from "@/service/StatisticService";
 import ProjectService from "@/service/ProjectService";
+import apexchart from "vue-apexcharts";
 
 export default Vue.extend({
   name: "Home",
 
   components: {
+    apexchart,
   },
 
   data() {
     return {
       projects: [],
       selectedProject: [],
-      statData: {},
+      statData: undefined,
       datacollection: null,
+      options: {
+        chart: {
+          id: "vuechart-example",
+        },
+        xaxis: {
+          categories: [],
+        },
+      },
+      series: [
+        {
+          name: "Executions",
+          data: [],
+        },
+      ],
     };
   },
   created() {
@@ -40,8 +62,7 @@ export default Vue.extend({
       this.projects = response.data;
     });
   },
-  methods: {
-  },
+  methods: {},
   watch: {
     selectedProject: function () {
       console.log(this.selectedProject);
@@ -50,6 +71,7 @@ export default Vue.extend({
         e.data.entries
           .map((e) => {
             let date = new Date(e.timestamp);
+            console.log(date);
             return (
               date.getDate() +
               "." +
@@ -62,6 +84,11 @@ export default Vue.extend({
             count[x] = (count[x] || 0) + 1;
           });
         this.statData = count;
+        this.options = {
+          ...this.options,
+          xaxis: { categories: Object.keys(this.statData) },
+        };
+        this.series = [{ name: this.series[0].name, data: Object.values(this.statData) }];
       });
     },
   },
