@@ -135,7 +135,7 @@ public class ContainerProxyService {
         } catch (MalformedURLException e) {
             throw new AIException("An internal error occurred while trying to create a request", ContainerProxyService.class);
         } catch (IOException e) {
-            throw new AIException("An internal error occurred while trying to connect to the service", ContainerProxyService.class);
+            throw new AIException("An internal error occurred while trying to connect to the service: " + e.getMessage(), ContainerProxyService.class);
         }
     }
 }

@@ -1,5 +1,15 @@
 <template>
   <v-card class="ma-4 pa-4">
+    <v-alert
+      v-if="errorMessage"
+      border="left"
+      type="error"
+      icon="mdi-cloud-alert"
+      dark
+      text
+    >
+      {{ errorMessage }}
+    </v-alert>
     <v-data-iterator
       :items="items"
       :items-per-page.sync="itemsPerPage"
@@ -237,6 +247,7 @@ export default {
       items: [],
       runningProjects: [],
       statusLoading: [],
+      errorMessage: undefined,
     };
   },
   created() {
@@ -252,6 +263,7 @@ export default {
   },
   methods: {
     startContainer(id) {
+      this.errorMessage = undefined;
       this.$set(this.statusLoading, id, true);
       DockerService.startContainer(id)
         .then((response) => {
@@ -259,9 +271,13 @@ export default {
         })
         .then(() => {
           this.$set(this.statusLoading, id, false);
+        })
+        .catch((e) => {
+          this.errorMessage = e.response.data?.message;
         });
     },
     stopContainer(id) {
+      this.errorMessage = undefined;
       this.$set(this.statusLoading, id, true);
       DockerService.stopContainer(id)
         .then((response) => {
@@ -269,12 +285,20 @@ export default {
         })
         .then(() => {
           this.$set(this.statusLoading, id, false);
+        })
+        .catch((e) => {
+          this.errorMessage = e.response.data?.message;
         });
     },
     loadContainerStatus() {
-      return DockerService.getRunningContainers().then((response) => {
-        this.runningProjects = response.data;
-      });
+      this.errorMessage = undefined;
+      return DockerService.getRunningContainers()
+        .then((response) => {
+          this.runningProjects = response.data;
+        })
+        .catch((e) => {
+          this.errorMessage = e.response.data?.message ?? 'An unknown error occured while checking container state';
+        });
     },
     nextPage() {
       if (this.page + 1 <= this.numberOfPages) this.page += 1;
