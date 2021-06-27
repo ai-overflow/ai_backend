@@ -21,7 +21,6 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
@@ -62,7 +61,7 @@ public class ProxyService {
                     .filter(e -> e.getPort().equals(tmpUrl.getPort()))
                     .findFirst();
 
-            if(connection.isEmpty() ||
+            if (connection.isEmpty() ||
                     !connection.get().getMethod().equalsIgnoreCase(formRequest.getMethod().toString())) {
                 throw new AIException("Request not found", ProxyService.class);
             }
@@ -96,9 +95,9 @@ public class ProxyService {
                     }
                 }
             }
-            Instant start = Instant.now();
-            try(var responseStream = con.getInputStream()) {
-                Instant stop = Instant.now();
+            var start = Instant.now();
+            try (var responseStream = con.getInputStream()) {
+                var stop = Instant.now();
 
                 addToStatistics(project.get(), start, stop);
                 return IOUtils.toByteArray(responseStream);
