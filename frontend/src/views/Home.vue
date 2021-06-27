@@ -11,13 +11,35 @@
       return-object
     ></v-autocomplete>
     <div v-if="statData">
-      <h3>Project Executions</h3>
-      <apexchart
-        width="500"
-        type="bar"
-        :options="options"
-        :series="series"
-      ></apexchart>
+      <v-row>
+        <v-col>
+          <h3>Project Executions</h3>
+          <apexchart
+            width="500"
+            type="bar"
+            :options="options"
+            :series="series"
+          ></apexchart>
+        </v-col>
+        <v-col>
+          <v-card color="primary" dark>
+            <v-card-title class="text-h5">
+              Average Execution Time
+            </v-card-title>
+
+            <v-card-text>
+              <v-row align="center">
+                <v-col class="text-h2" cols="6">
+                  {{ Math.round(executionData.avg * 100) / 100 }}ms
+                </v-col>
+                <v-col class="text-h2" cols="6">
+                  ±{{ Math.round(executionData.std * 100) / 100 }}ms
+                </v-col>
+              </v-row>
+            </v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
     </div>
   </v-card>
 </template>
@@ -40,6 +62,7 @@ export default Vue.extend({
       projects: [],
       selectedProject: [],
       statData: undefined,
+      executionData: undefined,
       datacollection: null,
       options: {
         chart: {
@@ -67,6 +90,13 @@ export default Vue.extend({
     selectedProject: function () {
       console.log(this.selectedProject);
       StatisticService.getProjectStats(this.selectedProject.id).then((e) => {
+        let executionTimes = e.data.entries.map((e) => e.executionTimeMs);
+        const sum = executionTimes.reduce((a, b) => a + b, 0);
+        const avg = sum / executionTimes.length || 0;
+        const variance =
+          executionTimes.reduce((a, b) => a + Math.pow(b - avg, 2), 0) / sum;
+        this.executionData = { avg: avg, std: Math.sqrt(variance) };
+
         let count = {};
         e.data.entries
           .map((e) => {
@@ -88,7 +118,9 @@ export default Vue.extend({
           ...this.options,
           xaxis: { categories: Object.keys(this.statData) },
         };
-        this.series = [{ name: this.series[0].name, data: Object.values(this.statData) }];
+        this.series = [
+          { name: this.series[0].name, data: Object.values(this.statData) },
+        ];
       });
     },
   },
