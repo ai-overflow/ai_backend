@@ -21,6 +21,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -39,6 +40,8 @@ public class ProjectService {
     private InferenceService inferenceService;
     @Autowired
     private ContainerProxyService containerProxyService;
+    @Autowired
+    private GitService gitService;
 
     /**
      * This method will download a Project from a given Git location.
@@ -90,7 +93,7 @@ public class ProjectService {
     }
 
     private Project processProject(String repo, Path dir) {
-        var projectInfo = cloneRepository(repo, dir);
+        var projectInfo = gitService.cloneRepository(repo, dir);
         deleteGitHistory(dir);
         try {
             var config = dlConfigYamlReader.readDlConfig(dir);
@@ -115,27 +118,7 @@ public class ProjectService {
         return projectInfo;
     }
 
-    /**
-     * Clones a repository by url
-     *
-     * @param repoUrl url of the repository
-     * @param dir     directory to clone to
-     * @return project information stub
-     */
-    private Project cloneRepository(String repoUrl, Path dir) {
-        try {
-            var git = Git.cloneRepository()
-                    .setURI(repoUrl)
-                    .setDirectory(dir.toFile())
-                    .call();
 
-            git.close();
-
-            return new Project(String.valueOf(dir), repoUrl);
-        } catch (GitAPIException e) {
-            throw new AIException("Error during git clone: " + e.getMessage(), ProjectService.class);
-        }
-    }
 
     /**
      * Delete .git history of project
@@ -181,7 +164,10 @@ public class ProjectService {
     }
 
     public void activateAllModels() {
-        projectRepository.findAll().forEach(project -> inferenceService.activateModel(project.getActiveModels()));
+        projectRepository.findAll().stream()
+                .map(Project::getActiveModels)
+                .filter(Objects::nonNull)
+                .forEach(models -> inferenceService.activateModel(models));
 
     }
 

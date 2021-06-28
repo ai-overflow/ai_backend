@@ -18,6 +18,8 @@ services:
       - CONTAINER_MANAGER_PORT=80
       - INTERNAL_NETWORK_NAME=dl_project_network
       - PROJECT_CONTAINER_PREFIX=project_
+      - GIT_USERNAME=${GIT_USERNAME}
+      - GIT_PASSWORD=${GIT_PASSWORD}
     volumes:
       - 'G:/projects:/projects'
       - 'G:/models:/models'

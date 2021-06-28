@@ -4,3 +4,5 @@ backend/projects/
 container-manager/.idea/
 
 models/
+
+.env

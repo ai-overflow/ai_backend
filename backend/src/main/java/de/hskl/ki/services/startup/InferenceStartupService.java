@@ -17,7 +17,6 @@ public class InferenceStartupService {
     @Autowired
     ProjectService projectService;
 
-
     @Autowired
     SpringProperties springProperties;
 
