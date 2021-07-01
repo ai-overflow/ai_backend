@@ -2,7 +2,8 @@
   <div>
     <LoadingOverlay v-if="pageLoading" />
     <div v-if="!page.loadSuccess && !pageLoading">
-      Die aufgerufene Seite kann nicht geladen werden. Bitte versuchen Sie es später erneut.
+      Die aufgerufene Seite kann nicht geladen werden. Bitte versuchen Sie es
+      später erneut.
       <p>{{ page.errorMessage }}</p>
     </div>
     <div v-if="page.loadSuccess && !pageLoading">
@@ -163,6 +164,7 @@ export default {
       loading: false,
       projectParsers: {},
       previewImage: "",
+      topLevelInputMap: {},
     };
   },
   components: {
@@ -175,9 +177,10 @@ export default {
       let el = [];
 
       for (const [ObjKey, value] of Object.entries(this.page.topLevelInput)) {
-        const inputs = this.page.projects
+        let inputs = this.page.projects
           .filter((e) => e.id === ObjKey)
           .map((e) => e.yaml.input)[0];
+        if (!inputs) continue;
 
         const filtered = Object.keys(inputs)
           .filter((key) => value.includes(key))
@@ -185,9 +188,23 @@ export default {
             obj[key] = inputs[key];
             return obj;
           }, {});
-        el.push(filtered);
+        el.push({ v: filtered, id: ObjKey });
       }
-      return el[0];
+
+      el.forEach((v) => {
+        let counter = 0;
+        Object.keys(el[0].v).forEach((upperKeys) => {
+          if (!this.topLevelInputMap[upperKeys]) {
+            this.$set(this.topLevelInputMap, upperKeys, []);
+          }
+          this.topLevelInputMap[upperKeys].push({
+            id: v.id,
+            name: Object.keys(v.v)[counter],
+          });
+          counter++;
+        });
+      });
+      return el[0].v;
     },
   },
   methods: {
@@ -206,7 +223,25 @@ export default {
       }
 
       let defaultParams = defaultParamGenerator(value.yaml);
-      this.inputData = { ...this.inputData, ...defaultParams, ...this.projectInputData[value.id] };
+
+      let newInputData = {};
+      for (let [k, v] of Object.entries(this.inputData)) {
+        for (let [nk, nv] of Object.entries(this.topLevelInputMap)) {
+          if (k === nk) {
+            let newName = nv
+              .filter((e) => e.id === value.id)
+              .map((e) => e.name)[0];
+            newInputData[newName] = this.inputData[k];
+          }
+        }
+      }
+      this.inputData = {
+        ...this.inputData,
+        ...defaultParams,
+        ...this.projectInputData[value.id],
+        ...newInputData
+      };
+      console.log(this.inputData);
       paramParser.input = this.inputData;
       this.projectParsers[value.id].input = this.inputData;
 
@@ -248,9 +283,11 @@ export default {
               this.topLevelInputs[e] && this.topLevelInputs[e].type === "image"
           )
         ];
-      toBase64(objFile).then((e) => {
-        this.previewImage = e;
-      });
+      if (objFile) {
+        toBase64(objFile).then((e) => {
+          this.previewImage = e;
+        });
+      }
     },
   },
 };
