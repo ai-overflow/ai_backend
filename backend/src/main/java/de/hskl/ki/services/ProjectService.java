@@ -87,8 +87,10 @@ public class ProjectService {
     private void deleteProjectFolder(Project project) {
         containerProxyService.stopContainer(project.getId());
 
-        inferenceService.deactivateModel(project.getActiveModels());
-        inferenceService.deleteModelFromTritonFolder(project.getActiveModels());
+        if(!project.getActiveModels().isEmpty()) {
+            inferenceService.deactivateModel(project.getActiveModels());
+            inferenceService.deleteModelFromTritonFolder(project.getActiveModels());
+        }
 
         var p = Paths.get(project.getProjectPath());
         try {

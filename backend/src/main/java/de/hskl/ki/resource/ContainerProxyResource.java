@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @RestControllerAdvice
 @RequestMapping("/api/v1/cp/")
@@ -20,14 +21,18 @@ public class ContainerProxyResource {
     }
 
     @PostMapping("container/{id}")
-    public ResponseEntity<String> startContainer(@PathVariable String id) {
-        String value = proxyService.startContainer(id);
-        return ResponseEntity.ok(value);
+    public CompletableFuture<ResponseEntity<String>> startContainer(@PathVariable String id) {
+        return CompletableFuture.supplyAsync(() -> {
+            String value = proxyService.startContainer(id);
+            return ResponseEntity.ok(value);
+        });
     }
 
     @DeleteMapping("container/{id}")
-    public ResponseEntity<String> stopContainer(@PathVariable String id) {
-        String value = proxyService.stopContainer(id);
-        return ResponseEntity.ok(value);
+    public CompletableFuture<ResponseEntity<String>> stopContainer(@PathVariable String id) {
+        return CompletableFuture.supplyAsync(() -> {
+            String value = proxyService.stopContainer(id);
+            return ResponseEntity.ok(value);
+        });
     }
 }

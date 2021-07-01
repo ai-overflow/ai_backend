@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.concurrent.CompletableFuture;
+
 @RestController
 @RequestMapping("/api/v1/public/proxy/")
 public class PublicProxyResource {
@@ -17,8 +19,10 @@ public class PublicProxyResource {
     private ProxyService proxyService;
 
     @PostMapping
-    public ResponseEntity<byte[]> getPage(@ModelAttribute ProxyFormRequest formRequest) {
-        var output = proxyService.proxyRequest(formRequest);
-        return ResponseEntity.ok(output);
+    public CompletableFuture<ResponseEntity<byte[]>> getPage(@ModelAttribute ProxyFormRequest formRequest) {
+        return CompletableFuture.supplyAsync(() -> {
+            var output = proxyService.proxyRequest(formRequest);
+            return ResponseEntity.ok(output);
+        });
     }
 }

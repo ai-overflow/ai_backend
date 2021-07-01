@@ -297,7 +297,7 @@ export default {
           this.runningProjects = response.data;
         })
         .catch((e) => {
-          this.errorMessage = e.response.data?.message ?? 'An unknown error occured while checking container state';
+          this.errorMessage = e.response?.data?.message ?? 'An unknown error occured while checking container state';
         });
     },
     nextPage() {
