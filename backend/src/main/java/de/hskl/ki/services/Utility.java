@@ -5,7 +5,6 @@ import org.apache.commons.io.FileUtils;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.security.SecureRandom;
 import java.util.Locale;
 
@@ -30,7 +29,7 @@ public class Utility {
     }
 
     public static void replaceRootWithSubfolder(Path root, Path subfolder) throws IOException {
-        if(root.equals(subfolder)) return;
+        if (root.equals(subfolder)) return;
 
         var tempDir = Files.createTempDirectory(null).resolve("tmp").toFile();
         FileUtils.moveDirectory(subfolder.toFile(), tempDir);

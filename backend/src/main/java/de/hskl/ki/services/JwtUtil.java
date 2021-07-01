@@ -21,8 +21,7 @@ public class JwtUtil {
 
     @Inject
     public JwtUtil(SpringProperties springProperties) {
-        //TODO: change back to: this.secretKey = springProperties.hasEnvironment("dev")
-        this.secretKey = !springProperties.hasEnvironment("dev") ?
+        this.secretKey = springProperties.hasEnvironment("dev") ?
                 "CHANGEME" :
                 Utility.generateRandomString(25);
     }

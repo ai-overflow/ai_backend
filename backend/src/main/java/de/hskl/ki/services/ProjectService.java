@@ -113,22 +113,28 @@ public class ProjectService {
             if (models.isEmpty()) {
                 logger.info("Models move failed.");
             } else {
-                try {
-                    inferenceService.activateModel(models.get());
+                if(activateModelOrDelete(models.get()))
                     projectInfo.setActiveModels(models.get());
-                } catch(AIException e) {
-                    inferenceService.deleteModelFromTritonFolder(models.get());
-                }
             }
         } catch (AIException e) {
             deleteProjectAfterException(dir, e.getMessage());
             throw new AIException("Error in Project " + dir + ": " + e.getMessage(), ProjectService.class);
         } catch (Exception e) {
             deleteProjectAfterException(dir, e.getMessage());
-            e.printStackTrace();
             throw new AIException("There was an error during project generation: " + e.getMessage(), ProjectService.class);
         }
         return projectInfo;
+    }
+
+    private boolean activateModelOrDelete(List<String> models) {
+        boolean success = false;
+        try {
+            inferenceService.activateModel(models);
+            success = true;
+        } catch(AIException e) {
+            inferenceService.deleteModelFromTritonFolder(models);
+        }
+        return success;
     }
 
     private void deleteProjectAfterException(Path dir, String message) {
@@ -142,18 +148,15 @@ public class ProjectService {
     private void moveConfigToRoot(Path dir) throws IOException {
         var configCandidates = dlConfigYamlReader.findDlConfigFolder(dir);
         if (configCandidates.size() > 1) {
-            System.out.println("Multiple locations of config files found: " + configCandidates);
             throw new AIException("Multiple locations of config files found: " + configCandidates, ProjectService.class);
         }
         var configFilePath = configCandidates.stream().findFirst();
         if (configCandidates.isEmpty()) {
-            System.out.println("Missing config file in project");
             throw new AIException("Missing config file in project", ProjectService.class);
         }
         var newProjectRoot = configFilePath.get().getParent();
 
         if (!newProjectRoot.equals(dir)) {
-            System.out.println("Replacing: " + dir + " with " + newProjectRoot);
             Utility.replaceRootWithSubfolder(dir, newProjectRoot);
         }
     }

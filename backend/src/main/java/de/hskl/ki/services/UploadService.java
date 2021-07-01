@@ -50,7 +50,6 @@ public class UploadService {
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
             throw new AIException("Unable to create a Project from a zip: " + e.getMessage(), UploadService.class);
         }
 

@@ -29,7 +29,7 @@ public class InferenceStartupService {
                 projectService.activateAllModels();
             }
         } catch (AIException e) {
-            logger.error("There was an error during Triton startup... triton won't be enabled: " + e.getMessage());
+            logger.error("There was an error during Triton startup... triton won't be enabled: {}", e.getMessage());
         }
     }
 }

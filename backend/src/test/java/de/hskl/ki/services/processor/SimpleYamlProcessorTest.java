@@ -10,7 +10,7 @@ import java.nio.file.Path;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
-public class SimpleYamlProcessorTest {
+class SimpleYamlProcessorTest {
 
     @Test
     void testFindRootFolder(@TempDir Path tempDir) throws IOException {

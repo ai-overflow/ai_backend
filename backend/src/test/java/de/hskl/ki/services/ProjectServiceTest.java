@@ -7,10 +7,5 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @DataMongoTest
 @ExtendWith(SpringExtension.class)
-public class ProjectServiceTest {
-
-    @Test
-    void moveProjectDirToRoot() {
-        //Mockito.when(citizenRepository.getDataFromDB()).thenReturn("Something you'd like to Return");
-    }
+class ProjectServiceTest {
 }
