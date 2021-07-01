@@ -15,4 +15,8 @@ VOLUME /tmp
 ARG DEPENDENCY=/workspace/app/target
 COPY --from=build ${DEPENDENCY}/ROOT.war /usr/local/tomcat/webapps/
 EXPOSE 8080
-CMD ["catalina.sh", "run"]
+
+ENV UPLOAD_MAX 1073741824
+
+CMD sed -i -e "s/<Connector port=\"8080\" protocol=\"HTTP\/1\.1\"[^\n]*/<Connector port=\"8080\" protocol=\"HTTP\/1\.1\" maxPostSize=\"$UPLOAD_MAX\"/g" ./conf/server.xml && \
+	./bin/catalina.sh run;

@@ -1,6 +1,7 @@
 package de.hskl.ki.services.startup;
 
 import de.hskl.ki.config.properties.SpringProperties;
+import de.hskl.ki.models.exceptions.AIException;
 import de.hskl.ki.services.ProjectService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,9 +23,13 @@ public class InferenceStartupService {
 
     @PostConstruct
     public void init() {
-        if (!springProperties.hasEnvironment("dev")) {
-            logger.info("Starting up Inference Service");
-            projectService.activateAllModels();
+        try {
+            if (!springProperties.hasEnvironment("dev")) {
+                logger.info("Starting up Inference Service");
+                projectService.activateAllModels();
+            }
+        } catch (AIException e) {
+            logger.error("There was an error during Triton startup... triton won't be enabled: " + e.getMessage());
         }
     }
 }

@@ -27,6 +27,14 @@ class ProjectService {
             .post(ProjectService.API_PATH + "project/", parseOptionsToAxiosConfig(options));
     }
 
+    public uploadProject(file: File, options?: any) {
+        const formData = new FormData();
+        formData.append("projectArchive", file);
+
+        return axios
+            .post(ProjectService.API_PATH + "project/upload", formData, parseOptionsToAxiosConfig(options));
+    }
+
     public reloadProject(id: string, url: string, options?: any) {
         options = {...options, repoUrl: url};
 

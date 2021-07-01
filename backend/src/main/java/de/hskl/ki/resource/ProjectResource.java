@@ -5,11 +5,14 @@ import de.hskl.ki.db.repository.ProjectRepository;
 import de.hskl.ki.models.project.ProjectChangeRequest;
 import de.hskl.ki.models.project.ProjectCreationRequest;
 import de.hskl.ki.services.ProjectService;
+import de.hskl.ki.services.UploadService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.file.Path;
 import java.util.List;
 
 @RestController
@@ -20,6 +23,9 @@ public class ProjectResource {
 
     @Autowired
     private ProjectRepository projectRepository;
+
+    @Autowired
+    private UploadService uploadService;
 
     @GetMapping("project")
     public List<Project> getAll() {
@@ -61,5 +67,12 @@ public class ProjectResource {
     public ResponseEntity<String> updateProject(@PathVariable String id, @RequestBody ProjectChangeRequest changes) {
         projectService.updateProject(id, changes);
         return ResponseEntity.ok("ok");
+    }
+
+    @PostMapping("project/upload")
+    public ResponseEntity<Project> uploadProject(@RequestParam MultipartFile projectArchive) {
+        var projectDir = uploadService.createProjectFromArchive(projectArchive);
+        var gitServiceResponse = projectService.generateProject(projectDir);
+        return ResponseEntity.ok(gitServiceResponse);
     }
 }

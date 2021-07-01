@@ -50,7 +50,6 @@ public class DockerService {
      *
      * @param projectDir  Path to the project folder
      * @param projectInfo Additional Project information
-     * @return success status
      * @throws IOException if there was an error during any write operation.
      *                     If this is triggered then there won't be any changes to the database
      */

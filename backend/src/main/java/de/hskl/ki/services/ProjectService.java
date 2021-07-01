@@ -8,14 +8,11 @@ import de.hskl.ki.models.yaml.dlconfig.ConfigDLYaml;
 import de.hskl.ki.services.interfaces.StorageService;
 import de.hskl.ki.services.processor.SimpleYamlProcessor;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -52,8 +49,16 @@ public class ProjectService {
      */
     public Project generateProject(String repo) {
         Path dir = projectStorageService.generateStorageFolder();
+        var projectInfo = gitService.cloneRepository(repo, dir);
 
-        var projectInfo = processProject(repo, dir);
+        processProject(projectInfo);
+        projectRepository.save(projectInfo);
+        return projectInfo;
+    }
+
+    public Project generateProject(Path projectDir) {
+        var projectInfo = new Project(String.valueOf(projectDir), "upload");
+        processProject(projectInfo);
         projectRepository.save(projectInfo);
         return projectInfo;
     }
@@ -61,7 +66,8 @@ public class ProjectService {
     public Project reloadProject(String projectId, String repo) {
         var project = getProjectById(projectId);
         deleteProjectFolder(project);
-        var newProject = processProject(repo, Path.of(project.getProjectPath()));
+        var projectInfo = gitService.cloneRepository(repo, Path.of(project.getProjectPath()));
+        var newProject = processProject(projectInfo);
         newProject.setId(project.getId());
         return projectRepository.save(newProject);
     }
@@ -92,10 +98,13 @@ public class ProjectService {
         }
     }
 
-    private Project processProject(String repo, Path dir) {
-        var projectInfo = gitService.cloneRepository(repo, dir);
-        deleteGitHistory(dir);
+    private Project processProject(Project projectInfo) {
+        var dir = Path.of(projectInfo.getProjectPath());
+        gitService.deleteGitHistory(dir);
+
         try {
+            moveConfigToRoot(dir);
+
             var config = dlConfigYamlReader.readDlConfig(dir);
             config.ifPresent(projectInfo::setYaml);
 
@@ -104,39 +113,55 @@ public class ProjectService {
             if (models.isEmpty()) {
                 logger.info("Models move failed.");
             } else {
-                inferenceService.activateModel(models.get());
-                projectInfo.setActiveModels(models.get());
+                try {
+                    inferenceService.activateModel(models.get());
+                    projectInfo.setActiveModels(models.get());
+                } catch(AIException e) {
+                    inferenceService.deleteModelFromTritonFolder(models.get());
+                }
             }
+        } catch (AIException e) {
+            deleteProjectAfterException(dir, e.getMessage());
+            throw new AIException("Error in Project " + dir + ": " + e.getMessage(), ProjectService.class);
         } catch (Exception e) {
-            try {
-                FileUtils.deleteDirectory(dir.toFile());
-            } catch (IOException ioException) {
-                throw new AIException("There was an error during git clone rollback: " + e.getMessage(), ProjectService.class);
-            }
+            deleteProjectAfterException(dir, e.getMessage());
+            e.printStackTrace();
             throw new AIException("There was an error during project generation: " + e.getMessage(), ProjectService.class);
         }
         return projectInfo;
     }
 
-
-
-    /**
-     * Delete .git history of project
-     *
-     * @param dir project directory
-     */
-    private void deleteGitHistory(Path dir) {
+    private void deleteProjectAfterException(Path dir, String message) {
         try {
-            FileUtils.deleteDirectory(new File(String.valueOf(dir.resolve(".git"))));
-        } catch (IOException e) {
-            throw new AIException("Unable to delete Git history", ProjectService.class);
+            FileUtils.deleteDirectory(dir.toFile());
+        } catch (IOException ioException) {
+            throw new AIException("There was an error during git clone rollback: " + message, ProjectService.class);
+        }
+    }
+
+    private void moveConfigToRoot(Path dir) throws IOException {
+        var configCandidates = dlConfigYamlReader.findDlConfigFolder(dir);
+        if (configCandidates.size() > 1) {
+            System.out.println("Multiple locations of config files found: " + configCandidates);
+            throw new AIException("Multiple locations of config files found: " + configCandidates, ProjectService.class);
+        }
+        var configFilePath = configCandidates.stream().findFirst();
+        if (configCandidates.isEmpty()) {
+            System.out.println("Missing config file in project");
+            throw new AIException("Missing config file in project", ProjectService.class);
+        }
+        var newProjectRoot = configFilePath.get().getParent();
+
+        if (!newProjectRoot.equals(dir)) {
+            System.out.println("Replacing: " + dir + " with " + newProjectRoot);
+            Utility.replaceRootWithSubfolder(dir, newProjectRoot);
         }
     }
 
     public void updateProject(String id, ProjectChangeRequest changes) {
         var project = getProjectById(id);
 
-        if(project.getGitUrl() != null &&
+        if (project.getGitUrl() != null &&
                 !project.getGitUrl().isEmpty() &&
                 !project.getGitUrl().equals(changes.getRepoUrl())) {
             project = reloadProject(id, changes.getRepoUrl());

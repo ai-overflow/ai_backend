@@ -26,12 +26,17 @@
         </v-btn>
       </template>
     </v-text-field>
+    <drag-n-drop-upload
+      v-model="fileUpload"
+      :loading="uploadLoading"
+    ></drag-n-drop-upload>
     <span v-if="gitData"> Cloned Repository: {{ gitData.yaml.name }} </span>
   </v-card>
 </template>
 
 <script>
 import ProjectService from "@/service/ProjectService";
+import DragNDropUpload from "@/components/DragNDropUpload";
 
 export default {
   data() {
@@ -40,7 +45,12 @@ export default {
       gitData: undefined,
       errorMessage: undefined,
       gitDownloadInProgress: false,
+      fileUpload: undefined,
+      uploadLoading: false,
     };
+  },
+  components: {
+    DragNDropUpload,
   },
   methods: {
     addGitProject() {
@@ -58,6 +68,19 @@ export default {
         })
         .finally(() => {
           this.gitDownloadInProgress = false;
+        });
+    },
+  },
+  watch: {
+    fileUpload: function () {
+      this.uploadLoading = true;
+
+      ProjectService.uploadProject(this.fileUpload[0])
+        .then((e) => {
+          console.log(e.data);
+        })
+        .finally(() => {
+          this.uploadLoading = false;
         });
     },
   },

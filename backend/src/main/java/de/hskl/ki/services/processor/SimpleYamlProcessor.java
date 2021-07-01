@@ -5,9 +5,12 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import java.io.IOException;
-import java.nio.file.Path;
+import java.nio.file.*;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class SimpleYamlProcessor<T> extends SimpleFileProcessor<T> {
     private static final String CONFIG_DL_YAML = "config.dl";
@@ -21,5 +24,15 @@ public class SimpleYamlProcessor<T> extends SimpleFileProcessor<T> {
 
     public Optional<T> readDlConfig(Path path) throws IOException {
         return read(path, CONFIG_DL_YAML, List.of("yaml", "yml"));
+    }
+
+    public List<Path> findDlConfigFolder(Path rootPath) throws IOException {
+        PathMatcher matcher = FileSystems.getDefault().getPathMatcher("regex:.*" + Pattern.quote(CONFIG_DL_YAML) + "\\.(?:yaml|yml)");
+
+        try (Stream<Path> files = Files.walk(rootPath)) {
+            return files
+                    .filter(matcher::matches)
+                    .collect(Collectors.toList());
+        }
     }
 }
