@@ -7,7 +7,6 @@ import de.hskl.ki.db.repository.ProjectRepository;
 import de.hskl.ki.models.container.ContainerResponse;
 import de.hskl.ki.models.container.ContainerStatsResponse;
 import de.hskl.ki.models.exceptions.AIException;
-import de.hskl.ki.services.processor.SimpleFileProcessor;
 import de.hskl.ki.services.processor.SimpleJsonProcessor;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;

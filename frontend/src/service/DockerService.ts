@@ -21,6 +21,11 @@ class DockerService {
         return axios
             .post(DockerService.API_PATH + "container/" + id, parseOptionsToAxiosConfig(options));
     }
+
+    public getContainerStats(options?: any) {
+        return axios
+            .get(DockerService.API_PATH + "stats/", parseOptionsToAxiosConfig(options));
+    }
 }
 
 export default new DockerService();

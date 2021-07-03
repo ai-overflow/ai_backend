@@ -7,7 +7,10 @@ from concurrent import futures
 import docker
 from app import app
 from flask import request
+from flask_caching import Cache
 
+cache = Cache(config={'CACHE_TYPE': 'SimpleCache'})
+cache.init_app(app)
 
 @app.route('/api/v1/container', methods=["GET"])
 def get_containers():
@@ -19,6 +22,7 @@ def get_containers():
 
 @app.route('/api/v1/container/stats/', defaults={"name": ""})
 @app.route('/api/v1/container/stats/<string:name>', methods=["GET"])
+@cache.cached(timeout=50)
 def get_container_stats(name):
     client = docker.from_env()
 
@@ -43,7 +47,7 @@ def get_container_stats(name):
         'memory': {
             'total': c['memory_stats']['limit'],
             'used': c['memory_stats']['usage'],
-            'used_percentage': round(c['memory_stats']['usage'] / c['memory_stats']['limit'], 2)
+            'used_percentage': round((c['memory_stats']['usage'] / c['memory_stats']['limit']) * 100, 2)
         }
     }, selected_container))
 

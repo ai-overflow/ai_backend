@@ -161,13 +161,54 @@
                   </v-list-item-content>
                 </v-list-item>
                 <v-list-item>
-                  <v-list-item-content> Container List: </v-list-item-content>
+                  <v-list-item-content> Container Stats: </v-list-item-content>
                   <v-list-item-content class="align-end">
-                    {{
-                      item.serviceNames !== null
-                        ? item.serviceNames.join(", ")
-                        : "-"
-                    }}
+                    <ul
+                      v-if="
+                        item.serviceNames &&
+                        item.serviceNames.length > 0 &&
+                        item.serviceNames[0].serviceName
+                      "
+                      class="break-word"
+                    >
+                      <li v-for="el of item.serviceNames" :key="el.serviceName">
+                        {{ el.serviceName }}
+                        <v-progress-linear
+                          color="primary"
+                          height="15"
+                          :value="el.memory.used_percentage"
+                          v-if="el.memory"
+                        >
+                          <template>
+                            <span class="white--text">
+                              {{
+                                Math.round(
+                                  (el.memory.used / Math.pow(1024, 3)) * 100
+                                ) / 100
+                              }}
+                              /
+                              {{
+                                Math.round(
+                                  (el.memory.total / Math.pow(1024, 3)) * 100
+                                ) / 100
+                              }}GB
+                            </span>
+                          </template>
+                        </v-progress-linear>
+                      </li>
+                    </ul>
+                    <ul
+                      v-if="
+                        item.serviceNames &&
+                        item.serviceNames.length > 0 &&
+                        !item.serviceNames[0].serviceName
+                      "
+                      class="break-word"
+                    >
+                      <li v-for="el of item.serviceNames" :key="el.serviceName">
+                        {{ el }}
+                      </li>
+                    </ul>
                   </v-list-item-content>
                 </v-list-item>
                 <v-list-item>
@@ -251,9 +292,12 @@ export default {
     };
   },
   created() {
-    ProjectService.getAllProjects().then((response) => {
-      this.items = response.data;
-    });
+    ProjectService.getAllProjects()
+      .then((response) => {
+        this.items = response.data;
+      })
+      .then(() => DockerService.getContainerStats())
+      .then((response) => this.addContainerStats(response.data));
     this.loadContainerStatus();
   },
   computed: {
@@ -276,6 +320,8 @@ export default {
         .then(() => {
           this.$set(this.statusLoading, id, false);
         })
+        .then(() => DockerService.getContainerStats())
+        .then((response) => this.addContainerStats(response.data))
         .catch((e) => {
           this.errorMessage =
             e.response?.data?.message ??
@@ -292,11 +338,13 @@ export default {
         .then(() => {
           this.$set(this.statusLoading, id, false);
         })
+        .then(() => DockerService.getContainerStats())
+        .then((response) => this.addContainerStats(response.data))
         .catch((e) => {
           this.errorMessage = e.response.data?.message;
         });
     },
-    loadContainerStatus(appendErrorMessage) {
+    loadContainerStatus(appendErrorMessage = false) {
       if (!appendErrorMessage) this.errorMessage = undefined;
       else this.errorMessage = this.errorMessage ?? "";
 
@@ -344,6 +392,22 @@ export default {
       let match = pathName.match(/([^/|\\]*)\/*$/)[1];
       return this.runningProjects.some((e) => e.startsWith(match));
     },
+    addContainerStats(response = []) {
+      for (const key of Object.keys(this.items)) {
+        if (!this.items[key].serviceNames) return;
+        const projectName =
+          this.items[key].projectPath.match(/([^/|\\]*)\/*$/)[1];
+        this.items[key].serviceNames = this.items[key].serviceNames.map((e) => {
+          if (e.serviceName) e = e.serviceName;
+          const fullServiceName = projectName + "_" + e;
+          const matchingService = response.find((s) =>
+            s.name.startsWith(fullServiceName)
+          );
+          if (matchingService) return { serviceName: e, ...matchingService };
+          return { serviceName: e };
+        });
+      }
+    },
   },
 };
 </script>
@@ -351,5 +415,8 @@ export default {
 <style>
 .errorContainer {
   white-space: pre;
+}
+.break-word {
+  word-break: break-all;
 }
 </style>
