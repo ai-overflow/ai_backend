@@ -1,15 +1,15 @@
 <template>
   <v-card class="ma-4 pa-4">
     <v-alert
-      v-if="errorMessage"
       border="left"
       type="error"
       icon="mdi-cloud-alert"
+      v-if="errorMessage"
       dark
       text
+      class="errorContainer"
+      >{{ errorMessage }}</v-alert
     >
-      {{ errorMessage }}
-    </v-alert>
     <v-data-iterator
       :items="items"
       :items-per-page.sync="itemsPerPage"
@@ -267,13 +267,19 @@ export default {
       this.$set(this.statusLoading, id, true);
       DockerService.startContainer(id)
         .then((response) => {
-          return this.loadContainerStatus();
+          if (!response.data.success) {
+            this.errorMessage = response.data.output;
+            console.log(this.errorMessage);
+          }
+          return this.loadContainerStatus(true);
         })
         .then(() => {
           this.$set(this.statusLoading, id, false);
         })
         .catch((e) => {
-          this.errorMessage = e.response.data?.message;
+          this.errorMessage =
+            e.response?.data?.message ??
+            "An unknown error occured while starting a container";
         });
     },
     stopContainer(id) {
@@ -290,14 +296,20 @@ export default {
           this.errorMessage = e.response.data?.message;
         });
     },
-    loadContainerStatus() {
-      this.errorMessage = undefined;
+    loadContainerStatus(appendErrorMessage) {
+      if (!appendErrorMessage) this.errorMessage = undefined;
+      else this.errorMessage = this.errorMessage ?? "";
+
       return DockerService.getRunningContainers()
         .then((response) => {
           this.runningProjects = response.data;
         })
         .catch((e) => {
-          this.errorMessage = e.response?.data?.message ?? 'An unknown error occured while checking container state';
+          let msg =
+            e.response?.data?.message ??
+            "An unknown error occured while checking container state";
+          if (appendErrorMessage) this.errorMessage += msg;
+          else this.errorMessage = msg;
         });
     },
     nextPage() {
@@ -337,4 +349,7 @@ export default {
 </script>
 
 <style>
+.errorContainer {
+  white-space: pre;
+}
 </style>

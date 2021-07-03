@@ -209,6 +209,7 @@ export default {
   },
   methods: {
     submitAll() {
+      this.serverReply = {};
       this.loading = true;
       let elements = Object.keys(this.page.projects).length;
       for (const [ObjKey, value] of Object.entries(this.page.projects)) {

@@ -5,6 +5,7 @@ import de.hskl.ki.config.properties.ProjectProperties;
 import de.hskl.ki.db.document.Project;
 import de.hskl.ki.db.repository.ProjectRepository;
 import de.hskl.ki.models.container.ContainerResponse;
+import de.hskl.ki.models.container.ContainerStatsResponse;
 import de.hskl.ki.models.exceptions.AIException;
 import de.hskl.ki.services.processor.SimpleFileProcessor;
 import de.hskl.ki.services.processor.SimpleJsonProcessor;
@@ -30,7 +31,6 @@ import java.util.stream.Collectors;
 @Service
 public class ContainerProxyService {
     private static final String CONTAINER_PROXY_PATH = "/api/v1/";
-    private final SimpleFileProcessor<ContainerResponse[]> fileProcessor = new SimpleJsonProcessor<>(ContainerResponse[].class);
     @Autowired
     private DockerManagerProperties dockerManagerProperties;
     @Autowired
@@ -66,12 +66,27 @@ public class ContainerProxyService {
      * @return List of all project names from the docker-compose
      */
     public List<String> getAllContainer() {
+        final var fileProcessor = new SimpleJsonProcessor<>(ContainerResponse[].class);
         Optional<ContainerResponse[]> containerResponse = fileProcessor.read(requestContainerURL("GET"));
+
         if (containerResponse.isPresent()) {
             var containers = containerResponse.get();
             return Arrays.stream(containers)
                     .filter(e -> e.getName().startsWith(projectProperties.getProjectContainerPrefix()))
                     .map(ContainerResponse::getName)
+                    .collect(Collectors.toList());
+        }
+        return List.of();
+    }
+
+    public List<ContainerStatsResponse> getContainerStats() {
+        final var fileProcessor = new SimpleJsonProcessor<>(ContainerStatsResponse[].class);
+        Optional<ContainerStatsResponse[]> containerResponse = fileProcessor.read(requestContainerURL("GET", "", "/stats/"));
+
+        if (containerResponse.isPresent()) {
+            var containers = containerResponse.get();
+            return Arrays.stream(containers)
+                    .filter(e -> e.getName().startsWith(projectProperties.getProjectContainerPrefix()))
                     .collect(Collectors.toList());
         }
         return List.of();
@@ -107,6 +122,10 @@ public class ContainerProxyService {
         return requestContainerURL(method, "");
     }
 
+    private String requestContainerURL(String method, String requestString) {
+        return requestContainerURL(method, requestString, "");
+    }
+
     /**
      * Helper function for HTTP request to the container manager
      *
@@ -114,17 +133,18 @@ public class ContainerProxyService {
      * @param requestString HTTP body
      * @return request stream result
      */
-    private String requestContainerURL(String method, String requestString) {
+    private String requestContainerURL(String method, String requestString, String subDir) {
         try {
             var url = new URL("http://" +
                     dockerManagerProperties.getContainerHost() +
                     ":" + dockerManagerProperties.getContainerPort() +
-                    CONTAINER_PROXY_PATH + "container");
+                    CONTAINER_PROXY_PATH + "container" + subDir);
 
 
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod(method);
             con.setDoOutput(true);
+            con.setInstanceFollowRedirects(true);
             if (!requestString.isEmpty()) {
                 try (var os = new OutputStreamWriter(con.getOutputStream())) {
                     os.write(requestString);

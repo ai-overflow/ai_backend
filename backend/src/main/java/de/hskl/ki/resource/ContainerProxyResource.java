@@ -1,5 +1,6 @@
 package de.hskl.ki.resource;
 
+import de.hskl.ki.models.container.ContainerStatsResponse;
 import de.hskl.ki.services.ContainerProxyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,10 @@ public class ContainerProxyResource {
     @Autowired
     private ContainerProxyService proxyService;
 
+    @GetMapping("stats")
+    public List<ContainerStatsResponse> getContainerStats() {
+        return proxyService.getContainerStats();
+    }
 
     @GetMapping("container")
     public List<String> getAllContainer() {
