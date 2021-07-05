@@ -17,6 +17,13 @@ services:
     ports:
       - '8091:8080'
     environment:
+      # ------------ [ Credentials ] ------------ #
+      # Login credentials.
+      # These settings will set up the first
+      # user for the backend application
+      #------------------------------------------ #
+      - INITIAL_USERNAME=${INITIAL_USERNAME}
+      - INITIAL_PASSWORD=${INITIAL_PASSWORD}
       # ------------- [ Mongo DB ] ------------- #
       # Github credentials.
       # This user must be added to the project

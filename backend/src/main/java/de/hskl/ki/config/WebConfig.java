@@ -15,7 +15,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
         DockerManagerProperties.class,
         InferenceProperties.class,
         ServerProperties.class,
-        GitProperties.class
+        GitProperties.class,
+        DbProperties.class
 })
 public class WebConfig implements WebMvcConfigurer {
 
