@@ -1,5 +1,6 @@
 package de.hskl.ki.services.startup;
 
+import de.hskl.ki.config.properties.DbProperties;
 import de.hskl.ki.config.properties.SpringProperties;
 import de.hskl.ki.models.exceptions.AIException;
 import de.hskl.ki.services.ProjectService;
@@ -21,8 +22,12 @@ public class InferenceStartupService {
     @Autowired
     SpringProperties springProperties;
 
+    @Autowired
+    DbProperties dbProperties;
+
     @PostConstruct
     public void init() {
+        System.out.println(dbProperties.getPassword());
         try {
             if (!springProperties.hasEnvironment("dev")) {
                 logger.info("Starting up Inference Service");
