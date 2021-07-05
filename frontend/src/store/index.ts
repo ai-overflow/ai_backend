@@ -8,7 +8,7 @@ const store = new Vuex.Store({
     modules: {
         auth: auth,
     },
-    strict: process.env.DEV
+    strict: process.env.DEV === "true"
 });
 
 export default store;

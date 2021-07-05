@@ -44,7 +44,7 @@
   </v-card>
 </template>
 
-<script lang="ts">
+<script>
 import Vue from "vue";
 import StatisticService from "@/service/StatisticService";
 import ProjectService from "@/service/ProjectService";

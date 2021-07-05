@@ -1,5 +1,15 @@
 version: '3.1'
 services:
+  frontend:
+    build:
+      context: frontend/.
+      dockerfile: docker/Dockerfile
+      args:
+        BASE_URL: ${BASE_URL}
+        VUE_APP_ROOT_API: ${VUE_APP_ROOT_API}
+    restart: always
+    ports:
+      - "8080:80"
   spring:
     build:
       context: backend/.

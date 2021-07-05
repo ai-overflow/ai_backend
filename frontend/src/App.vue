@@ -14,9 +14,9 @@
   </v-app>
 </template>
 
-<script lang="ts">
+<script>
 import Vue from "vue";
-import NavigationBar from "@/components/NavigationBar";
+import NavigationBar from "./components/NavigationBar.vue";
 import { mapActions } from "vuex";
 
 export default Vue.extend({
