@@ -1,5 +1,6 @@
 package de.hskl.ki.config.properties;
 
+import de.hskl.ki.config.properties.helper.HostOs;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties("app.project")
@@ -8,6 +9,7 @@ public class ProjectProperties {
     private String hostDir = "/";
     private String internalNetworkName = "dl_project_network";
     private String projectContainerPrefix = "project_";
+    private HostOs hostOs = HostOs.WINDOWS;
 
     public String getDirectory() {
         return directory;
@@ -39,5 +41,13 @@ public class ProjectProperties {
 
     public void setProjectContainerPrefix(String projectContainerPrefix) {
         this.projectContainerPrefix = projectContainerPrefix;
+    }
+
+    public HostOs getHostOs() {
+        return hostOs;
+    }
+
+    public void setHostOs(HostOs hostOs) {
+        this.hostOs = hostOs;
     }
 }

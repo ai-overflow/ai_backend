@@ -2,6 +2,7 @@ package de.hskl.ki.services;
 
 import de.hskl.ki.config.properties.ProjectProperties;
 import de.hskl.ki.config.properties.SpringProperties;
+import de.hskl.ki.config.properties.helper.HostOs;
 import de.hskl.ki.db.document.Project;
 import de.hskl.ki.db.document.helper.ProjectAccessInfo;
 import de.hskl.ki.models.exceptions.AIException;
@@ -119,7 +120,8 @@ public class DockerService {
                             }
 
                             pathName = pathName.replaceAll("^([A-Za-z]):", "$1").toLowerCase();
-                            return "/host_mnt/" + pathName + ":" + volumes[1];
+                            var hostPrefix = (projectProperties.getHostOs() == HostOs.WINDOWS ? "/host_mnt/" : "");
+                            return  hostPrefix + pathName + ":" + volumes[1];
                         } catch (IOException e) {
                             return volume;
                         }

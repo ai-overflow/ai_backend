@@ -37,9 +37,10 @@ services:
       # These are settings for the backend server
       # ----------------------------------------- #
       - PROJECT_ENV=${PROJECT_ENV}
+      - HOST_OS=${HOST_OS}
       # ------------- [ Frontend ] ------------- #
       # Frontend Server URL
-       # --------------------------------------- #
+      # --------------------------------------- #
       - SERVER_URL=${SERVER_URL}
       #
       # -------------- [ Paths ] -------------- #
