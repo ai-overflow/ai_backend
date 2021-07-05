@@ -27,7 +27,7 @@ public class SimpleYamlProcessor<T> extends SimpleFileProcessor<T> {
     }
 
     public List<Path> findDlConfigFolder(Path rootPath) throws IOException {
-        PathMatcher matcher = FileSystems.getDefault().getPathMatcher("regex:.*" + Pattern.quote(CONFIG_DL_YAML) + "\\.(?:yaml|yml)");
+        PathMatcher matcher = FileSystems.getDefault().getPathMatcher("regex:.*/" + Pattern.quote(CONFIG_DL_YAML) + "\\.(?:yaml|yml)");
 
         try (Stream<Path> files = Files.walk(rootPath)) {
             return files

@@ -22,12 +22,8 @@ public class InferenceStartupService {
     @Autowired
     SpringProperties springProperties;
 
-    @Autowired
-    DbProperties dbProperties;
-
     @PostConstruct
     public void init() {
-        System.out.println(dbProperties.getPassword());
         try {
             if (!springProperties.hasEnvironment("dev")) {
                 logger.info("Starting up Inference Service");
