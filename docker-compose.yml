@@ -78,6 +78,7 @@ services:
     networks:
       - ${INTERNAL_NETWORK_NAME}
       - default
+      - web
   mongo:
     image: 'mongo:4.4'
     restart: always
