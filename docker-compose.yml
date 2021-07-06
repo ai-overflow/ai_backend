@@ -40,6 +40,7 @@ services:
       # ----------------------------------------- #
       - PROJECT_ENV=${PROJECT_ENV}
       - HOST_OS=${HOST_OS}
+      - CORS_ENABLED=${CORS_ENABLED}
       # ------------- [ Frontend ] ------------- #
       # Frontend Server URL
       # --------------------------------------- #
