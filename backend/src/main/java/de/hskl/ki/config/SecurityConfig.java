@@ -1,5 +1,6 @@
 package de.hskl.ki.config;
 
+import de.hskl.ki.config.properties.ServerProperties;
 import de.hskl.ki.filters.JwtRequestFilter;
 import de.hskl.ki.services.CustomUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private JwtRequestFilter jwtRequestFilter;
 
+    @Autowired
+    private ServerProperties serverProperties;
+
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(customUserDetailsService);
@@ -30,8 +34,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
-                .cors()
-                .and()
                 .csrf().disable()
                 //.exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()
                 .authorizeRequests()
@@ -45,6 +47,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+
+        if(serverProperties.isCorsEnabled()) {
+            http.cors();
+        } else {
+            http.cors().disable();
+        }
         http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
     }
 
