@@ -1,11 +1,13 @@
 # build stage
 FROM node:lts-alpine as build-stage
 ARG VUE_APP_ROOT_API
+ARG BASE_URL
 
 
 WORKDIR /app
 COPY package.json ./
 ENV VUE_APP_ROOT_API=$VUE_APP_ROOT_API
+ENV BASE_URL=$BASE_URL
 
 
 
