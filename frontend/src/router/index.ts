@@ -27,6 +27,7 @@ function redirectIfAuthenticated<V extends Vue>(to: Route, from: Route, next: Na
 export const routes: Array<RouteConfig> = [
   {
     path: "/",
+    alias: '/Home',
     name: "Home",
     component: Home,
     meta: {

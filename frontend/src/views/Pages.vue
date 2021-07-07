@@ -58,7 +58,6 @@ export default {
   created() {
     PageService.getAllPages().then((e) => {
       this.items = e.data;
-      console.log(e.data);
     });
   },
   data() {

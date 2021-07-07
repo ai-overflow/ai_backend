@@ -3,7 +3,7 @@
     <v-alert border="left" colored-border type="error" elevation="2" v-if="!!loginErrorMessage">
       Login Error: {{loginErrorMessage}}
     </v-alert>
-    <form>
+    <v-form @submit.prevent="login">
       <v-text-field
         v-model="username"
         color="blue darken-2"
@@ -18,8 +18,8 @@
         autocomplete="on"
         required
       ></v-text-field>
-      <v-btn color="primary" @click="login">Login</v-btn>
-    </form>
+      <v-btn color="primary" @click="login" type="submit">Login</v-btn>
+    </v-form>
   </div>
 </template>
 

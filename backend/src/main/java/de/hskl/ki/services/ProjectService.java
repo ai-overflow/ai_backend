@@ -166,7 +166,8 @@ public class ProjectService {
     public void updateProject(String id, ProjectChangeRequest changes) {
         var project = getProjectById(id);
 
-        if (project.getGitUrl() != null &&
+        if (changes.isReloadFromGit() &&
+                project.getGitUrl() != null &&
                 !project.getGitUrl().isEmpty() &&
                 !project.getGitUrl().equals(changes.getRepoUrl())) {
             project = reloadProject(id, changes.getRepoUrl());

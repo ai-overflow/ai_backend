@@ -1,7 +1,9 @@
 <template>
   <v-card class="ma-4 pa-4">
-    <h2>{{ $route.params.id  !== "create" ? page.title : "Neue Seite erstellen" }}</h2>
-    <v-container v-if="$route.params.id  !== 'create'">
+    <h2>
+      {{ $route.params.id !== "create" ? page.title : "Neue Seite erstellen" }}
+    </h2>
+    <v-container v-if="$route.params.id !== 'create'">
       <v-text-field
         :value="'<iframe src=\'' + iframeSrc + '\' />'"
         label="HTML"
@@ -291,7 +293,16 @@ export default {
       const getUrl = window.location;
       const baseUrl = getUrl.protocol + "//" + getUrl.host;
 
-      return baseUrl + "/public/page/" + this.$route.params.id;
+      let subPath = "";
+      if (process.env.BASE_URL !== undefined) {
+        subPath = process.env.BASE_URL.startsWith("/")
+          ? process.env.BASE_URL
+          : "/" + process.env.BASE_URL;
+        if (subPath.endsWith("/"))
+          subPath = subPath.substr(0, subPath.length - 1);
+      }
+
+      return baseUrl + subPath + "/public/page/" + this.$route.params.id;
     },
   },
   watch: {
