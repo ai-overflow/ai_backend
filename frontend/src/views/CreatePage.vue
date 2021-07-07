@@ -294,13 +294,15 @@ export default {
       const baseUrl = getUrl.protocol + "//" + getUrl.host;
 
       let subPath = "";
-      if (process.env.BASE_URL) {
+      if (process.env.BASE_URL !== undefined) {
         subPath = process.env.BASE_URL.startsWith("/")
           ? process.env.BASE_URL
           : "/" + process.env.BASE_URL;
+        if (subPath.endsWith("/"))
+          subPath = subPath.substr(0, subPath.length - 1);
       }
 
-      return baseUrl + "/public/page/" + subPath + this.$route.params.id;
+      return baseUrl + subPath + "/public/page/" + this.$route.params.id;
     },
   },
   watch: {
