@@ -4,6 +4,7 @@ public class ProjectChangeRequest {
     private String name;
     private String description;
     private String repoUrl;
+    private boolean reloadFromGit;
 
     public ProjectChangeRequest() {
     }
@@ -32,12 +33,21 @@ public class ProjectChangeRequest {
         this.repoUrl = repoUrl;
     }
 
+    public boolean isReloadFromGit() {
+        return reloadFromGit;
+    }
+
+    public void setReloadFromGit(boolean reloadFromGit) {
+        this.reloadFromGit = reloadFromGit;
+    }
+
     @Override
     public String toString() {
         return "ProjectChangeRequest{" +
                 "name='" + name + '\'' +
                 ", description='" + description + '\'' +
-                ", gitUrl='" + repoUrl + '\'' +
+                ", repoUrl='" + repoUrl + '\'' +
+                ", reloadFromGit=" + reloadFromGit +
                 '}';
     }
 }

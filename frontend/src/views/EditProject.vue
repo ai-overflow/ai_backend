@@ -69,11 +69,20 @@
                           <v-icon>mdi-refresh</v-icon>
                         </v-btn>
                       </template>
-                      <span>Reload Project from Git URL</span>
+                      <span>Reload project from git URL</span>
                     </v-tooltip>
                   </div>
                 </template>
               </v-text-field>
+            </v-col>
+          </v-row>
+          <v-row class="mt-0">
+            <v-col class="pt-0 mt-0">
+              <v-checkbox
+              class="mt-0"
+                v-model="reloadFromGit"
+                label="Reload project if URL has been changed"
+              ></v-checkbox>
             </v-col>
           </v-row>
           <v-row>
@@ -198,6 +207,7 @@ export default {
       submitLoading: false,
       errorMessage: undefined,
       activeModelIgnoreUpdate: false,
+      reloadFromGit: true
     };
   },
   created() {
@@ -209,12 +219,8 @@ export default {
       ProjectService.getProject(this.$route.params.id)
         .then((e) => {
           this.projectInfo = e.data;
-          this.loading = false;
 
           return InferenceService.getStatus();
-        })
-        .catch((e) => {
-          this.errorMessage = e.response.data?.message;
         })
         .then((e) => {
           this.errorMessage = undefined;
@@ -227,6 +233,12 @@ export default {
             )
             .filter((e) => e !== -1);
           this.activeModels = activeData;
+        })
+        .catch((e) => {
+          this.errorMessage = e.response?.data?.message;
+        })
+        .finally(() => {
+          this.loading = false;
         });
     },
     convertDate(date) {
@@ -241,6 +253,7 @@ export default {
         repoUrl: this.projectInfo.gitUrl,
         name: this.projectInfo.yaml.name,
         description: this.projectInfo.yaml.description,
+        reloadFromGit: this.reloadFromGit
       };
 
       ProjectService.updateProject(this.$route.params.id, value)
