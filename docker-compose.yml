@@ -120,6 +120,13 @@ services:
     command: tritonserver --model-repository=${MODEL_DIR} --model-control-mode=explicit
     networks:
       - ${INTERNAL_NETWORK_NAME}
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            count: 2
+            capabilities: [gpu]
 volumes:
   project_volume:
     driver: local
