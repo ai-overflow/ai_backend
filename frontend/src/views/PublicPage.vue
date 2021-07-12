@@ -76,18 +76,20 @@
                       ].entries()"
                       :key="i"
                     >
-                      <OutputGenerator
-                        :output="item"
-                        :inputVars="inputData"
-                        :outputVars="serverReply[index.id]"
-                        :iterator="el"
-                        :title="
-                          projectParsers[index.id].parseIterator(
-                            item.repeat.title
-                          )[i]
-                        "
-                        :customParser="projectParsers[index.id]"
-                      />
+                      <div v-if="Array.isArray(el)">
+                        <OutputGenerator
+                          :output="item"
+                          :inputVars="inputData"
+                          :outputVars="serverReply[index.id]"
+                          :iterator="el"
+                          :title="
+                            projectParsers[index.id].parseIterator(
+                              item.repeat.title
+                            )[i]
+                          "
+                          :customParser="projectParsers[index.id]"
+                        />
+                      </div>
                     </div>
                   </div>
                   <div v-else class="limited-height-container">
@@ -139,7 +141,6 @@ export default {
         for (let key of Object.values(this.page.projects)) {
           this.projectInputData[key.id] = {};
         }
-        console.log(this.projectInputData);
       })
       .catch((e) => {
         this.page.loadSuccess = false;
@@ -220,7 +221,11 @@ export default {
     },
     submit(value) {
       if (!this.projectParsers[value.id]) {
-        this.$set(this.projectParsers, value.id, new ParamParser());
+        this.$set(
+          this.projectParsers,
+          value.id,
+          new ParamParser(process.env.VUE_APP_DEBUG?.toLowerCase() === "true")
+        );
       }
 
       let defaultParams = defaultParamGenerator(value.yaml);
@@ -240,9 +245,8 @@ export default {
         ...this.inputData,
         ...defaultParams,
         ...this.projectInputData[value.id],
-        ...newInputData
+        ...newInputData,
       };
-      console.log(this.inputData);
       paramParser.input = this.inputData;
       this.projectParsers[value.id].input = this.inputData;
 
@@ -259,7 +263,9 @@ export default {
           contentType: e.headers["content-type"],
         };
 
-        let copy = new ParamParser();
+        let copy = new ParamParser(
+          process.env.VUE_APP_DEBUG?.toLowerCase() === "true"
+        );
         copy.connection = el;
         copy.input = this.projectParsers[value.id].input;
         this.$set(this.projectParsers, value.id, copy);
