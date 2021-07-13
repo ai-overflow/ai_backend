@@ -1,11 +1,11 @@
 <template>
   <v-app class="main">
-    <v-app-bar color="primary" dark app v-if="!showFrontPage">
+    <v-app-bar color="primary" dark app v-if="showFrame">
       <v-toolbar-title> AI Administration </v-toolbar-title>
       <v-spacer />
       <v-icon small @click="logoutAction"> mdi-logout </v-icon>
     </v-app-bar>
-    <navigation-bar v-if="!showFrontPage" />
+    <navigation-bar v-if="showFrame" />
     <v-main>
       <v-container>
         <router-view />
@@ -28,10 +28,10 @@ export default Vue.extend({
     //
   }),
   computed: {
-    showFrontPage() {
+    showFrame() {
       //prevent flickering if route isn't fully loaded yet
-      if(!this.$route.name) return true;
-      return (this.$route.meta.showFrame === undefined ? !!this.$route.meta.showFrame : true);
+      if(!this.$route.name) return false;
+      return (this.$route.meta.showFrame !== undefined ? !!this.$route.meta.showFrame : true);
     },
   },
   methods: {
