@@ -30,8 +30,8 @@ export default Vue.extend({
   computed: {
     showFrame() {
       //prevent flickering if route isn't fully loaded yet
-      if(!this.$route.name) return true;
-      return (this.$route.meta.showFrame === undefined ? !!this.$route.meta.showFrame : true);
+      if(!this.$route.name) return false;
+      return (this.$route.meta.showFrame !== undefined ? !!this.$route.meta.showFrame : true);
     },
   },
   methods: {
