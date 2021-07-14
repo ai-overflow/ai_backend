@@ -7,8 +7,8 @@
       <p>{{ page.errorMessage }}</p>
     </div>
     <div v-if="page.loadSuccess && !pageLoading">
-      <h2>{{ page.title }}</h2>
-      <p>
+      <h2 v-if="!this.$route.query.showTitle || this.$route.query.showTitle.toLowerCase() !== 'false'">{{ page.title }}</h2>
+      <p v-if="!this.$route.query.showDescription || this.$route.query.showDescription.toLowerCase() !== 'false'">
         {{ page.description }}
       </p>
       <div v-for="[name, item] of Object.entries(topLevelInputs)" :key="name">
