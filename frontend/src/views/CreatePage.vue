@@ -22,7 +22,7 @@
           '\'\n' +
           '\tstyle=\'width: 100%; height: 1000px; border: none\'\n' +
           '\tclass=\'project-iframe\'\n' +
-          '/>'
+          '></iframe>'
         "
         label="HTML"
         readonly
