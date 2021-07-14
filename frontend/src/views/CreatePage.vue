@@ -4,10 +4,15 @@
       {{ $route.params.id !== "create" ? page.title : "Neue Seite erstellen" }}
     </h2>
     <v-container v-if="$route.params.id !== 'create'">
-      <v-text-field
-        :value="'<iframe src=\'' + iframeSrc + '\' />'"
+      <v-textarea
+        :value="'<iframe\n' +
+            '\tsrc=\'' + iframeSrc + '\'\n' +
+            '\tstyle=\'width: 100%; height: 1000px; border: none\'\n' +
+            '\tclass=\'project-iframe\'\n' +
+             '/>'"
         label="HTML"
         readonly
+        @focus="$event.target.select()"
       />
       <v-expansion-panels multiple>
         <v-expansion-panel>
