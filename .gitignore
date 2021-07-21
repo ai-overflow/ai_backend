@@ -6,3 +6,5 @@ container-manager/.idea/
 models/
 
 .env
+
+.vscode/

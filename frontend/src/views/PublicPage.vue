@@ -7,16 +7,37 @@
       <p>{{ page.errorMessage }}</p>
     </div>
     <div v-if="page.loadSuccess && !pageLoading">
-      <h2 v-if="!this.$route.query.showTitle || this.$route.query.showTitle.toLowerCase() !== 'false'">{{ page.title }}</h2>
-      <p v-if="!this.$route.query.showDescription || this.$route.query.showDescription.toLowerCase() !== 'false'">
+      <h2
+        v-if="
+          !this.$route.query.showTitle ||
+          this.$route.query.showTitle.toLowerCase() !== 'false'
+        "
+      >
+        {{ page.title }}
+      </h2>
+      <p
+        v-if="
+          !this.$route.query.showDescription ||
+          this.$route.query.showDescription.toLowerCase() !== 'false'
+        "
+      >
         {{ page.description }}
       </p>
       <div v-for="[name, item] of Object.entries(topLevelInputs)" :key="name">
         <h4>{{ parseParams(item.label) || name }}</h4>
-        <InputGenerator :type-info="item" v-model="inputData[name]" />
+        <InputGenerator
+          :type-info="item"
+          v-model="inputData[name]"
+          @change="TopLevelInputListener"
+        />
       </div>
       <div>
-        <v-btn @click="() => submitAll()" :loading="loading">Senden</v-btn>
+        <v-btn
+          @click="() => submitAll()"
+          :loading="loading"
+          v-if="Object.keys(this.topLevelInputs).length > 1"
+          >Senden</v-btn
+        >
       </div>
     </div>
     <div
@@ -106,6 +127,12 @@
           </v-row>
         </v-tab-item>
       </v-tabs-items>
+    </div>
+    <div v-if="loading && Object.keys(serverReply).length === 0 && Object.keys(this.topLevelInputs).length <= 1">
+      <v-skeleton-loader
+      class="mx-auto"
+      type="list-item-avatar-three-line, image, article"
+    ></v-skeleton-loader>
     </div>
   </div>
 </template>
@@ -277,6 +304,13 @@ export default {
     },
     parseParams(str) {
       return paramParser.parseParams(str);
+    },
+    TopLevelInputListener(e) {
+      this.$nextTick(() => {
+        if (Object.keys(this.topLevelInputs).length === 1) {
+          this.submitAll();
+        }
+      });
     },
   },
   watch: {
