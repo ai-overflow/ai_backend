@@ -6,6 +6,16 @@
       später erneut.
       <p>{{ page.errorMessage }}</p>
     </div>
+    <v-alert
+      v-if="replyInfo"
+      border="left"
+      type="info"
+      dark
+      text
+      class="ma-10"
+    >
+      {{ replyInfo }}
+    </v-alert>
     <div v-if="page.loadSuccess && !pageLoading">
       <h2
         v-if="
@@ -128,11 +138,17 @@
         </v-tab-item>
       </v-tabs-items>
     </div>
-    <div v-if="loading && Object.keys(serverReply).length === 0 && Object.keys(this.topLevelInputs).length <= 1">
+    <div
+      v-if="
+        loading &&
+        Object.keys(serverReply).length === 0 &&
+        Object.keys(this.topLevelInputs).length <= 1
+      "
+    >
       <v-skeleton-loader
-      class="mx-auto"
-      type="list-item-avatar-three-line, image, article"
-    ></v-skeleton-loader>
+        class="mx-auto"
+        type="list-item-avatar-three-line, image, article"
+      ></v-skeleton-loader>
     </div>
   </div>
 </template>
@@ -185,7 +201,9 @@ export default {
         loadSuccess: true,
         title: "",
         description: "",
+        errorMessage: undefined,
       },
+      replyInfo: undefined,
       inputData: [],
       projectInputData: {},
       serverReply: {},
@@ -237,12 +255,19 @@ export default {
   },
   methods: {
     submitAll() {
+      this.replyInfo = undefined;
       this.serverReply = {};
       this.loading = true;
       let elements = Object.keys(this.page.projects).length;
       for (const [ObjKey, value] of Object.entries(this.page.projects)) {
         this.submit(value).finally(() => {
-          if (--elements <= 0) this.loading = false;
+          if (--elements <= 0) {
+            this.loading = false;
+            if (Object.keys(this.serverReply).length < 1) {
+              this.replyInfo =
+                "No Model returned a valid result for this image. Please try another image.";
+            }
+          }
         });
       }
     },
