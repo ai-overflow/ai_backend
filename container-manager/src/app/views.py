@@ -3,14 +3,28 @@ import os
 import subprocess
 import time
 from concurrent import futures
+from dataclasses import dataclass
+from typing import Iterable, Union, Sequence
 
 import docker
 from app import app
 from flask import request
 from flask_caching import Cache
 
+
+MAXIMUM_STAT_THREADS = 10
+CONTAINER_STAT_CACHE_DURATION = 120
+
 cache = Cache(config={'CACHE_TYPE': 'SimpleCache'})
 cache.init_app(app)
+
+
+@dataclass
+class DockerComposeMessage:
+    success: bool
+    message: str
+    output: str = None
+
 
 @app.route('/api/v1/container', methods=["GET"])
 def get_containers():
@@ -22,14 +36,14 @@ def get_containers():
 
 @app.route('/api/v1/container/stats/', defaults={"name": ""})
 @app.route('/api/v1/container/stats/<string:name>', methods=["GET"])
-@cache.cached(timeout=50)
-def get_container_stats(name):
+@cache.cached(timeout=CONTAINER_STAT_CACHE_DURATION)
+def get_container_stats(name: str) -> str:
     client = docker.from_env()
 
     selected_container = list(filter(lambda c: c.name.startswith(name), client.containers.list()))
 
     # maximum 10 threads, but at least as many threads as containers
-    with futures.ThreadPoolExecutor(min(10, len(selected_container))) as executor:
+    with futures.ThreadPoolExecutor(min(MAXIMUM_STAT_THREADS, len(selected_container))) as executor:
         jobs = []
         results_done = []
 
@@ -55,25 +69,25 @@ def get_container_stats(name):
 
 
 @app.route('/api/v1/container', methods=["POST"])
-def start_container():
-    return docker_compose_command(["docker-compose", "up", "-d"])
+def start_container() -> str:
+    return json.dumps(docker_compose_command(["docker-compose", "up", "-d"]))
 
 
 @app.route('/api/v1/container', methods=["DELETE"])
-def stop_container():
-    return docker_compose_command(["docker-compose", "down"])
+def stop_container() -> str:
+    return json.dumps(docker_compose_command(["docker-compose", "down"]))
 
 
-def docker_compose_command(command):
+def docker_compose_command(command: Sequence[Union[bytes, str, None]]) -> DockerComposeMessage:
     data = json.loads(request.get_data())
     folder = "/projects/" + data['project_folder']
     if os.path.isdir(folder):
         output = subprocess.run(command, cwd=folder, capture_output=True, text=True)
         if output.returncode == 0:
-            return json.dumps({"success": True, "output": output.stdout})
-        return json.dumps({"success": False, "message": "Failed with status code: " + str(output.returncode),
-                           "output": output.stderr})
-    return json.dumps({"success": False, "message": "Can't find Project"})
+            return DockerComposeMessage(success=True, message=str(output.stdout))
+        return DockerComposeMessage(success=False, message="Failed with status code: " + str(output.returncode),
+                                    output=str(output.stderr))
+    return DockerComposeMessage(success=False, message="Can't find Project")
 
 
 if __name__ == '__main__':
