@@ -6,14 +6,7 @@
       später erneut.
       <p>{{ page.errorMessage }}</p>
     </div>
-    <v-alert
-      v-if="replyInfo"
-      border="left"
-      type="info"
-      dark
-      text
-      class="ma-10"
-    >
+    <v-alert v-if="replyInfo" border="left" type="info" dark text class="ma-10">
       {{ replyInfo }}
     </v-alert>
     <div v-if="page.loadSuccess && !pageLoading">
@@ -89,7 +82,13 @@
                   ><v-icon left>mdi-refresh</v-icon>Aktualisieren</v-btn
                 >
               </div>
-              <div class="public-tab-item">
+              <div
+                :class="{
+                  publicTabItem,
+                  embeddedTabItem: $route.query.embedded === 'true',
+                  pageTabItem: $route.query.embedded === 'true',
+                }"
+              >
                 <div
                   v-for="[name, item] of Object.entries(index.yaml.output)"
                   :key="name"
@@ -123,7 +122,14 @@
                       </div>
                     </div>
                   </div>
-                  <div v-else class="limited-height-container">
+                  <div
+                    v-else
+                    :class="
+                      $route.query.embedded === 'true'
+                        ? 'limited-height-container'
+                        : ''
+                    "
+                  >
                     <OutputGenerator
                       :output="item"
                       :inputVars="inputData"
@@ -147,7 +153,7 @@
     >
       <v-skeleton-loader
         class="mx-auto"
-        type="list-item-avatar-three-line, image, article"
+        type="image, article"
       ></v-skeleton-loader>
     </div>
   </div>
@@ -360,10 +366,17 @@ export default {
 </script>
 
 <style>
+.limited-height-container {
+  max-height: 500px;
+}
 .public-tab-item {
+}
+.page-tab-item {
   overflow-y: auto;
   overflow-x: hidden;
-  max-height: 500px;
+}
+.embedded-tab-item {
+  overflow: hidden;
 }
 .half-image {
   max-width: 50%;

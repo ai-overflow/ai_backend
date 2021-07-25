@@ -333,7 +333,8 @@ export default {
         "?showTitle=" +
         this.iframe.showTitle +
         "&showDescription=" +
-        this.iframe.showDescription
+        this.iframe.showDescription +
+        "&embedded=true"
       );
     },
   },
