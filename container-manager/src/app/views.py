@@ -1,22 +1,28 @@
+import dataclasses
 import json
 import os
 import subprocess
-import time
 from concurrent import futures
 from dataclasses import dataclass
-from typing import Iterable, Union, Sequence
+from typing import Union, Sequence
 
 import docker
 from app import app
 from flask import request
 from flask_caching import Cache
 
-
 MAXIMUM_STAT_THREADS = 10
 CONTAINER_STAT_CACHE_DURATION = 120
 
 cache = Cache(config={'CACHE_TYPE': 'SimpleCache'})
 cache.init_app(app)
+
+
+class EnhancedJSONEncoder(json.JSONEncoder):
+    def default(self, o):
+        if dataclasses.is_dataclass(o):
+            return dataclasses.asdict(o)
+        return super().default(o)
 
 
 @dataclass
@@ -70,12 +76,12 @@ def get_container_stats(name: str) -> str:
 
 @app.route('/api/v1/container', methods=["POST"])
 def start_container() -> str:
-    return json.dumps(docker_compose_command(["docker-compose", "up", "-d"]))
+    return json.dumps(docker_compose_command(["docker-compose", "up", "-d"]), cls=EnhancedJSONEncoder)
 
 
 @app.route('/api/v1/container', methods=["DELETE"])
 def stop_container() -> str:
-    return json.dumps(docker_compose_command(["docker-compose", "down"]))
+    return json.dumps(docker_compose_command(["docker-compose", "down"]), cls=EnhancedJSONEncoder)
 
 
 def docker_compose_command(command: Sequence[Union[bytes, str, None]]) -> DockerComposeMessage:
