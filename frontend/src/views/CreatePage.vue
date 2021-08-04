@@ -32,7 +32,7 @@
         <v-expansion-panel>
           <v-expansion-panel-header>Example</v-expansion-panel-header>
           <v-expansion-panel-content>
-            <iframe :src="iframeSrc" title="example" class="example-iframe" />
+            <iframe :src="iframeSrc" title="example" class="example-iframe" style="width: 600px" />
           </v-expansion-panel-content>
         </v-expansion-panel>
       </v-expansion-panels>

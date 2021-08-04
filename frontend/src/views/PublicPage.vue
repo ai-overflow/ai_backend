@@ -61,10 +61,19 @@
           :key="index.id"
         >
           <v-row>
-            <v-col v-if="page.layout === 'DOUBLE'" class="half-image">
-              <v-img :src="previewImage" />
+            <v-col v-if="page.layout === 'DOUBLE'" class="half-image" xs="12" sm="12" md="6">
+              <!-- TODO: Make this a div -->
+              <div
+                class="preview-image"
+                :ref="`showCaseImage_${index.id.replaceAll('-', '_')}`"
+                :style="{
+                  backgroundImage: 'url(' + previewImage + ')',
+                  backgroundSize: 'cover',
+                }"
+              ></div>
+              <!--<img :src="previewImage" alt="" class="preview-image" :ref="`showCaseImage_${index.id.replaceAll('-', '_')}`" />-->
             </v-col>
-            <v-col>
+            <v-col xs="12" sm="12" md="6">
               <div class="pa-5">
                 <div
                   v-for="[inputName, inputItem] of Object.entries(
@@ -84,7 +93,7 @@
               </div>
               <div
                 :class="{
-                  publicTabItem,
+                  publicTabItem: true,
                   embeddedTabItem: $route.query.embedded === 'true',
                   pageTabItem: $route.query.embedded === 'true',
                 }"
@@ -124,17 +133,19 @@
                   </div>
                   <div
                     v-else
-                    :class="
-                      $route.query.embedded === 'true'
-                        ? 'limited-height-container'
-                        : ''
-                    "
+                    :class="{
+                      'limited-height-container':
+                        !$route.query.embedded === 'true',
+                    }"
                   >
                     <OutputGenerator
                       :output="item"
                       :inputVars="inputData"
                       :outputVars="serverReply[index.id]"
                       :customParser="projectParsers[index.id]"
+                      :canvas="
+                        $refs['showCaseImage_' + index.id.replaceAll('-', '_')]
+                      "
                     />
                   </div>
                 </div>
@@ -169,7 +180,7 @@ import {
   generateDataFromResponse,
 } from "@shared/helper/connection";
 import { ParamParser, paramParser } from "@shared/helper/paramParser";
-import { defaultParamGenerator, toBase64 } from "@shared/helper/utility";
+import { defaultParamGenerator, toBase64, scaleToSize, readSize } from "@shared/helper/utility";
 
 export default {
   created() {
@@ -358,6 +369,14 @@ export default {
       if (objFile) {
         toBase64(objFile).then((e) => {
           this.previewImage = e;
+          return e;
+        })
+        .then(e => readSize(e))
+        .then(e => {
+          const size = scaleToSize(e, 400);
+          console.log(size);
+        }).catch((e) => {
+          console.log(e);
         });
       }
     },
@@ -380,5 +399,10 @@ export default {
 }
 .half-image {
   max-width: 50%;
+}
+.preview-image {
+  max-width: 100%;
+  position: sticky;
+  top: 0;
 }
 </style>
