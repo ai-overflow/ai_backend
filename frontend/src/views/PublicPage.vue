@@ -59,6 +59,7 @@
         <v-tab-item
           v-for="index in this.page.projects.filter((e) => !!serverReply[e.id])"
           :key="index.id"
+          :eager="true"
         >
           <v-row>
             <v-col v-if="page.layout === 'DOUBLE'" class="half-image" xs="12" sm="12" md="6">
