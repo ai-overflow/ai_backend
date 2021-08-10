@@ -62,7 +62,13 @@
           :eager="true"
         >
           <v-row>
-            <v-col v-if="page.layout === 'DOUBLE'" class="half-image" xs="12" sm="12" md="6">
+            <v-col
+              v-if="page.layout === 'DOUBLE'"
+              class="half-image"
+              xs="12"
+              sm="12"
+              md="6"
+            >
               <!-- TODO: Make this a div -->
               <div
                 class="preview-image"
@@ -181,10 +187,27 @@ import {
   generateDataFromResponse,
 } from "@shared/helper/connection";
 import { ParamParser, paramParser } from "@shared/helper/paramParser";
-import { defaultParamGenerator, toBase64, scaleToSize, readSize } from "@shared/helper/utility";
+import {
+  defaultParamGenerator,
+  toBase64,
+  scaleToSize,
+  readSize,
+} from "@shared/helper/utility";
+
+import SockJS from "sockjs-client";
+import * as Stomp from "stompjs";
 
 export default {
   created() {
+    let sock = new SockJS(process.env.VUE_APP_ROOT_API + "/ws/stomp");
+    let client = Stomp.over(sock);
+    client.connect({}, (frame) => {
+      client.subscribe("/topic/messages", (payload) => {
+        console.log(JSON.parse(payload.body));
+      });
+      client.send("/app/chat", {}, JSON.stringify({ message: "test" }));
+    });
+
     paramParser.input = this.inputData;
 
     this.pageLoading = true;
@@ -368,17 +391,19 @@ export default {
           )
         ];
       if (objFile) {
-        toBase64(objFile).then((e) => {
-          this.previewImage = e;
-          return e;
-        })
-        .then(e => readSize(e))
-        .then(e => {
-          const size = scaleToSize(e, 400);
-          console.log(size);
-        }).catch((e) => {
-          console.log(e);
-        });
+        toBase64(objFile)
+          .then((e) => {
+            this.previewImage = e;
+            return e;
+          })
+          .then((e) => readSize(e))
+          .then((e) => {
+            const size = scaleToSize(e, 400);
+            console.log(size);
+          })
+          .catch((e) => {
+            console.log(e);
+          });
       }
     },
   },
