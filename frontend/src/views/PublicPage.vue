@@ -200,12 +200,14 @@ import * as Stomp from "stompjs";
 export default {
   created() {
     let sock = new SockJS(process.env.VUE_APP_ROOT_API + "/ws/stomp");
-    let client = Stomp.over(sock);
-    client.connect({}, (frame) => {
-      client.subscribe("/topic/messages", (payload) => {
+    this.wsClient = Stomp.over(sock);
+
+    // Web Socket set up
+    this.wsClient.connect({}, (frame) => {
+      this.wsClient.subscribe("/topic/messages", (payload) => {
         console.log(JSON.parse(payload.body));
       });
-      client.send("/app/chat", {}, JSON.stringify({ message: "test" }));
+      this.wsClient.send("/app/chat", {}, JSON.stringify({ message: "test" }));
     });
 
     paramParser.input = this.inputData;
@@ -252,6 +254,7 @@ export default {
       projectParsers: {},
       previewImage: "",
       topLevelInputMap: {},
+      wsClient: undefined,
     };
   },
   components: {
@@ -300,6 +303,8 @@ export default {
       this.serverReply = {};
       this.loading = true;
       let elements = Object.keys(this.page.projects).length;
+
+      // classic http request
       for (const [ObjKey, value] of Object.entries(this.page.projects)) {
         this.submit(value).finally(() => {
           if (--elements <= 0) {
@@ -311,18 +316,22 @@ export default {
           }
         });
       }
+
+      // web socket request
+      for (const [objKey, value] of Object.entries(this.page.projects)) {
+        this.wsClient.send("/app/upload", {}, JSON.stringify(this.generateWebSocketData(value)));
+      }
+    },
+    generateWebSocketData(value) {
+      this.generateParserIfNeeded(value);
+      let defaultParams = defaultParamGenerator(value.yaml);
+      // TODO: generate data and send to web socket
     },
     submit(value) {
-      if (!this.projectParsers[value.id]) {
-        this.$set(
-          this.projectParsers,
-          value.id,
-          new ParamParser(process.env.VUE_APP_DEBUG?.toLowerCase() === "true")
-        );
-      }
-
+      this.generateParserIfNeeded(value);
       let defaultParams = defaultParamGenerator(value.yaml);
 
+      // overwrite default params with user input
       let newInputData = {};
       for (let [k, v] of Object.entries(this.inputData)) {
         for (let [nk, nv] of Object.entries(this.topLevelInputMap)) {
@@ -364,6 +373,15 @@ export default {
         this.$set(this.projectParsers, value.id, copy);
         this.$set(this.serverReply, value.id, el);
       });
+    },
+    generateParserIfNeeded(value) {
+      if (!this.projectParsers[value.id]) {
+        this.$set(
+          this.projectParsers,
+          value.id,
+          new ParamParser(process.env.VUE_APP_DEBUG?.toLowerCase() === "true")
+        );
+      }
     },
     parseIterator(str) {
       return paramParser.parseIterator(str);

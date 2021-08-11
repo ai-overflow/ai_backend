@@ -1,14 +1,11 @@
 package de.hskl.ki.resource.websocket;
 
 import de.hskl.ki.models.websocket.UploadCacheRequest;
-import de.hskl.ki.models.websocket.UploadCacheResponse;
-import de.hskl.ki.services.ProxyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.socket.messaging.SessionConnectedEvent;
@@ -25,10 +22,17 @@ public class PublicUploadResource {
     private final Map<String, List<Object>> sendCache = new HashMap<>();
 
     @MessageMapping("/chat")
-    // Sends the return value of this method to /topic/messages
     @SendTo("/topic/messages")
-    public void getMessages(@Header("simpSessionId") String sessionId, UploadCacheRequest dto){
-        logger.info("Client with Id {} has message", sessionId);
+    public void getMessages(@Header("simpSessionId") String sessionId, UploadCacheRequest dto) {
+        logger.info("Client with Id {} has message: {}", sessionId, dto.getMessage());
+        var el = sendCache.computeIfAbsent(sessionId, k -> new ArrayList<>());
+        el.add(new Object()); // TODO: replace with real payload
+    }
+
+    @MessageMapping("/upload")
+    @SendTo("/topic/upload")
+    public void webSocketProxyRequest(@Header("simpSessionId") String sessionId, UploadCacheRequest dto) {
+        logger.info("Client with Id {} has message: {}", sessionId, dto.getMessage());
         var el = sendCache.computeIfAbsent(sessionId, k -> new ArrayList<>());
         el.add(new Object()); // TODO: replace with real payload
     }
