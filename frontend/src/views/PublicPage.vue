@@ -201,6 +201,7 @@ export default {
   created() {
     let sock = new SockJS(process.env.VUE_APP_ROOT_API + "/ws/stomp");
     this.wsClient = Stomp.over(sock);
+    this.wsClient.debug = false;
 
     // Web Socket set up
     this.wsClient.connect({}, (frame) => {
@@ -209,7 +210,6 @@ export default {
       });
       this.wsClient.send("/app/chat", {}, JSON.stringify({ message: "test" }));
     });
-
     paramParser.input = this.inputData;
 
     this.pageLoading = true;
@@ -318,31 +318,26 @@ export default {
       }
 
       // web socket request
-      for (const [objKey, value] of Object.entries(this.page.projects)) {
-        this.wsClient.send("/app/upload", {}, JSON.stringify(this.generateWebSocketData(value)));
-      }
+      this.wsClient.send(
+        "/app/upload",
+        {},
+        JSON.stringify(
+          this.generateWebSocketData(Object.values(this.page.projects))
+        )
+      );
     },
-    generateWebSocketData(value) {
-      this.generateParserIfNeeded(value);
-      let defaultParams = defaultParamGenerator(value.yaml);
-      // TODO: generate data and send to web socket
+    generateWebSocketData(values) {
+      let newInputData =
+        this.generateInputDataFromTopLevelWithoutDuplicates(values);
+      console.log(newInputData);
+      return { data: newInputData };
     },
     submit(value) {
       this.generateParserIfNeeded(value);
       let defaultParams = defaultParamGenerator(value.yaml);
 
       // overwrite default params with user input
-      let newInputData = {};
-      for (let [k, v] of Object.entries(this.inputData)) {
-        for (let [nk, nv] of Object.entries(this.topLevelInputMap)) {
-          if (k === nk) {
-            let newName = nv
-              .filter((e) => e.id === value.id)
-              .map((e) => e.name)[0];
-            newInputData[newName] = this.inputData[k];
-          }
-        }
-      }
+      let newInputData = this.generateInputDataFromTopLevel(value);
       this.inputData = {
         ...this.inputData,
         ...defaultParams,
@@ -382,6 +377,48 @@ export default {
           new ParamParser(process.env.VUE_APP_DEBUG?.toLowerCase() === "true")
         );
       }
+    },
+    generateInputDataFromTopLevel(value) {
+      let newInputData = {};
+      for (let [k, v] of Object.entries(this.inputData)) {
+        for (let [nk, nv] of Object.entries(this.topLevelInputMap)) {
+          if (k === nk) {
+            let newName = nv
+              .filter((e) => e.id === value.id)
+              .map((e) => e.name)[0];
+            newInputData[newName] = this.inputData[k];
+          }
+        }
+      }
+      return newInputData;
+    },
+    generateInputDataFromTopLevelWithoutDuplicates(values) {
+      // Error: duplicates excpects an array
+      if (!Array.isArray(values)) return {};
+
+      let newInputData = {};
+      for (let [nk, nv] of Object.entries(this.topLevelInputMap)) {
+        newInputData[nk] = {};
+        newInputData[nk].names = [];
+        for (let [k, v] of Object.entries(this.inputData)) {
+          if (k === nk) {
+            if (this.inputData[k] instanceof File) {
+              toBase64(this.inputData[k]).then((e) => {
+                newInputData[nk].data = e;
+              });
+            }
+
+            for (let value of values) {
+              let newName = nv
+                .filter((e) => e.id === value.id)
+                .map((e) => e.name)[0];
+              newInputData[k].names.push({ id: value.id, name: newName });
+            }
+          }
+        }
+      }
+      //todo: wait for promise to resolve
+      return newInputData;
     },
     parseIterator(str) {
       return paramParser.parseIterator(str);

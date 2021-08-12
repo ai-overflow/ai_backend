@@ -24,7 +24,7 @@ public class PublicUploadResource {
     @MessageMapping("/chat")
     @SendTo("/topic/messages")
     public void getMessages(@Header("simpSessionId") String sessionId, UploadCacheRequest dto) {
-        logger.info("Client with Id {} has message: {}", sessionId, dto.getMessage());
+        logger.info("Client with Id {} has message: {}", sessionId, dto.getData());
         var el = sendCache.computeIfAbsent(sessionId, k -> new ArrayList<>());
         el.add(new Object()); // TODO: replace with real payload
     }
@@ -32,7 +32,7 @@ public class PublicUploadResource {
     @MessageMapping("/upload")
     @SendTo("/topic/upload")
     public void webSocketProxyRequest(@Header("simpSessionId") String sessionId, UploadCacheRequest dto) {
-        logger.info("Client with Id {} has message: {}", sessionId, dto.getMessage());
+        logger.info("Client with Id {} has message: {}", sessionId, dto.getData());
         var el = sendCache.computeIfAbsent(sessionId, k -> new ArrayList<>());
         el.add(new Object()); // TODO: replace with real payload
     }

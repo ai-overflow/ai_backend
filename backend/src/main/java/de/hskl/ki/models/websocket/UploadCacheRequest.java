@@ -1,13 +1,15 @@
 package de.hskl.ki.models.websocket;
 
-public class UploadCacheRequest {
-    String message;
+import java.util.Map;
 
-    public String getMessage() {
-        return message;
+public class UploadCacheRequest {
+    private Map<String, UploadCacheTopLevelInput> data;
+
+    public Map<String, UploadCacheTopLevelInput> getData() {
+        return data;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    public void setData(Map<String, UploadCacheTopLevelInput> data) {
+        this.data = data;
     }
 }
