@@ -62,6 +62,20 @@
           :eager="true"
         >
           <v-row>
+            <v-col>
+              <v-expansion-panels>
+                <v-expansion-panel>
+                  <v-expansion-panel-header>
+                    Projektbeschreibung
+                  </v-expansion-panel-header>
+                  <v-expansion-panel-content>
+                    <VueMarkdown :source="index.yaml.description" />
+                  </v-expansion-panel-content>
+                </v-expansion-panel>
+              </v-expansion-panels>
+            </v-col>
+          </v-row>
+          <v-row>
             <v-col
               v-if="page.layout === 'DOUBLE'"
               class="half-image"
@@ -182,6 +196,7 @@ import PageService from "@/service/PublicPageService";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import InputGenerator from "@shared/components/input/InputGenerator";
 import OutputGenerator from "@shared/components/output/OutputGenerator";
+import VueMarkdown from "vue-markdown-render";
 import {
   proxyRequest,
   generateDataFromResponse,
@@ -261,6 +276,7 @@ export default {
     LoadingOverlay,
     InputGenerator,
     OutputGenerator,
+    VueMarkdown,
   },
   computed: {
     topLevelInputs() {
@@ -392,6 +408,7 @@ export default {
       }
       return newInputData;
     },
+    // TODO: Websockets
     generateInputDataFromTopLevelWithoutDuplicates(values) {
       // Error: duplicates excpects an array
       if (!Array.isArray(values)) return {};
@@ -403,6 +420,7 @@ export default {
         for (let [k, v] of Object.entries(this.inputData)) {
           if (k === nk) {
             if (this.inputData[k] instanceof File) {
+              // todo: fix this
               toBase64(this.inputData[k]).then((e) => {
                 newInputData[nk].data = e;
               });

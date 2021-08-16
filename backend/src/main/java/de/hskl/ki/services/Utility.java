@@ -2,11 +2,13 @@ package de.hskl.ki.services;
 
 import org.apache.commons.io.FileUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.SecureRandom;
 import java.util.Locale;
+import java.util.Optional;
 
 public class Utility {
     private static final SecureRandom secureRandom = new SecureRandom();
@@ -35,5 +37,17 @@ public class Utility {
         FileUtils.moveDirectory(subfolder.toFile(), tempDir);
         FileUtils.deleteDirectory(root.toFile());
         FileUtils.moveDirectory(tempDir, root.toFile());
+    }
+
+    public static Optional<File> findFileCaseInsensitive(File dir, String filename) {
+        var files = dir.list();
+        if(files == null) return Optional.empty();
+
+        for(var file : files) {
+            if(file.equalsIgnoreCase(filename)) {
+                return Optional.of(dir.toPath().resolve(file).toFile());
+            }
+        }
+        return Optional.empty();
     }
 }

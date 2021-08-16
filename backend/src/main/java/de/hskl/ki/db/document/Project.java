@@ -20,6 +20,7 @@ public class Project {
     private Map<Integer, ProjectAccessInfo> accessInfo;
     private List<String> serviceNames;
     private List<String> activeModels;
+    private String readme;
 
     public Project(String projectPath, Date creationDate, String gitUrl) {
         this.projectPath = projectPath;
@@ -114,6 +115,14 @@ public class Project {
         this.activeModels = activeModels;
     }
 
+    public String getReadme() {
+        return readme;
+    }
+
+    public void setReadme(String readme) {
+        this.readme = readme;
+    }
+
     @Override
     public String toString() {
         return "Project{" +
@@ -124,8 +133,8 @@ public class Project {
                 ", yaml=" + yaml +
                 ", accessInfo=" + accessInfo +
                 ", serviceNames=" + serviceNames +
+                ", activeModels=" + activeModels +
+                ", description='" + readme + '\'' +
                 '}';
     }
-
-
 }

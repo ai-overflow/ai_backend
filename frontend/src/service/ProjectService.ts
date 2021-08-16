@@ -53,6 +53,11 @@ class ProjectService {
         return axios
             .delete(ProjectService.API_PATH + "project/" + id + "/triton", parseOptionsToAxiosConfig(options));
     }
+
+    public getDescriptionFromReadme(id: string, options?: any) {
+        return axios
+            .put(ProjectService.API_PATH + "project/" + id + "/loadReadme", parseOptionsToAxiosConfig(options));
+    }
 }
 
 export default new ProjectService();
