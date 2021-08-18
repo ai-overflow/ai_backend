@@ -334,17 +334,15 @@ export default {
       }
 
       // web socket request
-      this.wsClient.send(
-        "/app/upload",
-        {},
-        JSON.stringify(
-          this.generateWebSocketData(Object.values(this.page.projects))
-        )
+      this.generateWebSocketData(Object.values(this.page.projects)).then(
+        (data) => {
+          this.wsClient.send("/app/upload", {}, JSON.stringify(data));
+        }
       );
     },
-    generateWebSocketData(values) {
+    async generateWebSocketData(values) {
       let newInputData =
-        this.generateInputDataFromTopLevelWithoutDuplicates(values);
+        await this.generateInputDataFromTopLevelWithoutDuplicates(values);
       console.log(newInputData);
       return { data: newInputData };
     },
@@ -409,28 +407,26 @@ export default {
       return newInputData;
     },
     // TODO: Websockets
-    generateInputDataFromTopLevelWithoutDuplicates(values) {
+    async generateInputDataFromTopLevelWithoutDuplicates(values) {
       // Error: duplicates excpects an array
       if (!Array.isArray(values)) return {};
 
       let newInputData = {};
       for (let [nk, nv] of Object.entries(this.topLevelInputMap)) {
         newInputData[nk] = {};
-        newInputData[nk].names = [];
+        newInputData[nk].aliasList = [];
         for (let [k, v] of Object.entries(this.inputData)) {
           if (k === nk) {
             if (this.inputData[k] instanceof File) {
               // todo: fix this
-              toBase64(this.inputData[k]).then((e) => {
-                newInputData[nk].data = e;
-              });
+              newInputData[nk].base64Data = await toBase64(this.inputData[k]);
             }
 
             for (let value of values) {
               let newName = nv
                 .filter((e) => e.id === value.id)
                 .map((e) => e.name)[0];
-              newInputData[k].names.push({ id: value.id, name: newName });
+              newInputData[k].aliasList.push({ id: value.id, name: newName });
             }
           }
         }

@@ -19,27 +19,19 @@ import java.util.Map;
 @Controller
 public class PublicUploadResource {
     private final Logger logger = LoggerFactory.getLogger(PublicUploadResource.class);
-    private final Map<String, List<Object>> sendCache = new HashMap<>();
-
-    @MessageMapping("/chat")
-    @SendTo("/topic/messages")
-    public void getMessages(@Header("simpSessionId") String sessionId, UploadCacheRequest dto) {
-        logger.info("Client with Id {} has message: {}", sessionId, dto.getData());
-        var el = sendCache.computeIfAbsent(sessionId, k -> new ArrayList<>());
-        el.add(new Object()); // TODO: replace with real payload
-    }
+    private final Map<String, List<UploadCacheRequest>> sendCache = new HashMap<>();
 
     @MessageMapping("/upload")
     @SendTo("/topic/upload")
     public void webSocketProxyRequest(@Header("simpSessionId") String sessionId, UploadCacheRequest dto) {
-        logger.info("Client with Id {} has message: {}", sessionId, dto.getData());
+        logger.info("Client with Id {} has message: {}", sessionId, dto);
         var el = sendCache.computeIfAbsent(sessionId, k -> new ArrayList<>());
-        el.add(new Object()); // TODO: replace with real payload
+        el.add(dto); // TODO: replace with real payload
     }
 
     @EventListener
     public void onDisconnectEvent(SessionDisconnectEvent event) {
-        logger.info("Client with Id {} disconnected", event.getSessionId());
+        logger.info("Client with Id {} disconnected, el remaining: {}", event.getSessionId(), sendCache.size());
         sendCache.remove(event.getSessionId());
     }
 

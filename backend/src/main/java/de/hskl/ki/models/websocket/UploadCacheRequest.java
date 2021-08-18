@@ -12,4 +12,11 @@ public class UploadCacheRequest {
     public void setData(Map<String, UploadCacheTopLevelInput> data) {
         this.data = data;
     }
+
+    @Override
+    public String toString() {
+        return "UploadCacheRequest{" +
+                "data=" + data +
+                '}';
+    }
 }
