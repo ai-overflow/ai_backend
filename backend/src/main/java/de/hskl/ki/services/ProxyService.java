@@ -8,7 +8,9 @@ import de.hskl.ki.db.repository.StatisticsRepository;
 import de.hskl.ki.models.exceptions.AIException;
 import de.hskl.ki.models.proxy.ProxyFormRequest;
 import de.hskl.ki.models.proxy.RequestMethods;
+import de.hskl.ki.models.yaml.dlconfig.YamlConnection;
 import org.apache.commons.io.IOUtils;
+import org.apache.tomcat.util.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +27,9 @@ import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class ProxyService {
@@ -38,6 +43,9 @@ public class ProxyService {
 
     @Autowired
     private SpringProperties springProperties;
+
+    @Autowired
+    private UploadCacheService uploadCacheService;
 
     // TODO: FormData, Image Conversion, HTML Sanitizing
     public byte[] proxyRequest(ProxyFormRequest formRequest) {
@@ -65,6 +73,8 @@ public class ProxyService {
                     !connection.get().getMethod().equalsIgnoreCase(formRequest.getMethod().toString())) {
                 throw new AIException("Request not found", ProxyService.class);
             }
+
+            fillProjectData(formRequest, connection.get());
 
             url = new URL(parseUrl(tmpUrl, project.get()));
         } catch (MalformedURLException e) {
@@ -108,6 +118,46 @@ public class ProxyService {
         } catch (IOException e) {
             throw new AIException("Unable to request content from proxy: " + e.getMessage(), ProxyService.class);
         }
+    }
+
+    private void fillProjectData(ProxyFormRequest formRequest, YamlConnection connection) {
+        //TODO: move up
+        String pattern = "\\{\\{input\\.(.*?)}}";
+        Pattern r = Pattern.compile(pattern);
+        Matcher m = r.matcher(formRequest.getData().toLowerCase());
+        if (m.find()) {
+            var varName = m.group(1);
+            var cacheRequest = uploadCacheService.getSendCache().get(formRequest.getCacheId());
+            cacheRequest.getData().forEach((k, v) -> {
+                var result = v.getAliasList().stream().filter(e -> e.getId().equals(formRequest.getId())).findFirst();
+                if (result.isPresent()) {
+                    if (result.get().getName().equalsIgnoreCase(varName)) {
+                        var data = v.getBase64Data();
+                        if(connection.getBody().getType().equalsIgnoreCase("raw")) {
+                            // TODO: Replace input.ABC with base64
+                            System.out.println("data: " + data.substring(0, 100));
+                        } else if(connection.getBody().getType().equalsIgnoreCase("binary")) {
+                            var dataString = data.split(",");
+                            var contentType = getContentType(dataString[0]);
+
+                            formRequest.setData(null);
+                            formRequest.setDataBinary(Base64.decodeBase64(dataString[1]));
+                            formRequest.setContentType(contentType);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    private String getContentType(String s) {
+        var pattern = "^data:(.*?);base64";
+        Pattern r = Pattern.compile(pattern);
+        Matcher m = r.matcher(s);
+        if(m.find()) {
+            return m.group(1);
+        }
+        return null;
     }
 
     private void addToStatistics(Project project, Instant start, Instant stop) {

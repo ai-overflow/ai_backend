@@ -26,7 +26,7 @@ public class UploadCacheTopLevelInput {
     public String toString() {
         return "UploadCacheTopLevelInput{" +
                 "names=" + aliasList +
-                ", base64Data='" + base64Data.substring(0, 100) + '\'' +
+                ", base64Data='" + (base64Data != null ? base64Data.substring(0, 100) : null) + '\'' +
                 '}';
     }
 }

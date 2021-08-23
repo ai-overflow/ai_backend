@@ -220,10 +220,17 @@ export default {
 
     // Web Socket set up
     this.wsClient.connect({}, (frame) => {
-      this.wsClient.subscribe("/topic/messages", (payload) => {
-        console.log(JSON.parse(payload.body));
+      // todo subscribe again
+      this.wsClient.subscribe("/topic/upload", (payload) => {
+        const message = JSON.parse(payload.body);
+        if(message.success) {
+          console.log("got response from server...")
+          this.handleUploadAfterCache(message.id);
+        } else {
+          console.log("Fatal error during cache upload...");
+        }
+        payload.ack();
       });
-      this.wsClient.send("/app/chat", {}, JSON.stringify({ message: "test" }));
     });
     paramParser.input = this.inputData;
 
@@ -279,6 +286,16 @@ export default {
     VueMarkdown,
   },
   computed: {
+    getNamesForTopLEvelInput() {
+      let obj = {};
+      for(const [key, value] of Object.entries(this.topLevelInputMap)) {
+        obj[key] = {};
+        for(const inner of value) {
+          obj[key][inner.id] = inner.name;
+        }
+      }
+      return obj;
+    },
     topLevelInputs() {
       let el = [];
 
@@ -315,6 +332,14 @@ export default {
   },
   methods: {
     submitAll() {
+      // web socket request
+      this.generateWebSocketData(Object.values(this.page.projects)).then(
+        (data) => {
+          this.wsClient.send("/app/upload", {}, JSON.stringify(data))
+        }
+      );
+    },
+    handleUploadAfterCache(cacheId) {
       this.replyInfo = undefined;
       this.serverReply = {};
       this.loading = true;
@@ -322,7 +347,7 @@ export default {
 
       // classic http request
       for (const [ObjKey, value] of Object.entries(this.page.projects)) {
-        this.submit(value).finally(() => {
+        this.submit(value, cacheId).finally(() => {
           if (--elements <= 0) {
             this.loading = false;
             if (Object.keys(this.serverReply).length < 1) {
@@ -332,21 +357,13 @@ export default {
           }
         });
       }
-
-      // web socket request
-      this.generateWebSocketData(Object.values(this.page.projects)).then(
-        (data) => {
-          this.wsClient.send("/app/upload", {}, JSON.stringify(data));
-        }
-      );
     },
     async generateWebSocketData(values) {
       let newInputData =
         await this.generateInputDataFromTopLevelWithoutDuplicates(values);
-      console.log(newInputData);
       return { data: newInputData };
     },
-    submit(value) {
+    submit(value, cacheId) {
       this.generateParserIfNeeded(value);
       let defaultParams = defaultParamGenerator(value.yaml);
 
@@ -358,13 +375,23 @@ export default {
         ...this.projectInputData[value.id],
         ...newInputData,
       };
+
+
+      for(const topLevelValue of Object.values(this.getNamesForTopLEvelInput)) {
+        if(this.inputData[topLevelValue[value.id]] instanceof File) {
+          delete this.inputData[topLevelValue[value.id]];
+        }
+      }
+      console.log(this.inputData);
+
       paramParser.input = this.inputData;
       this.projectParsers[value.id].input = this.inputData;
 
       return proxyRequest(
         "/api/v1/public/proxy/",
         value.yaml.connection[value.yaml.entryPoint],
-        value.id
+        value.id,
+        cacheId
       ).then((e) => {
         let content = generateDataFromResponse(e);
         let el = {};
@@ -418,15 +445,14 @@ export default {
         for (let [k, v] of Object.entries(this.inputData)) {
           if (k === nk) {
             if (this.inputData[k] instanceof File) {
-              // todo: fix this
               newInputData[nk].base64Data = await toBase64(this.inputData[k]);
-            }
 
-            for (let value of values) {
-              let newName = nv
-                .filter((e) => e.id === value.id)
-                .map((e) => e.name)[0];
-              newInputData[k].aliasList.push({ id: value.id, name: newName });
+              for (let value of values) {
+                let newName = nv
+                  .filter((e) => e.id === value.id)
+                  .map((e) => e.name)[0];
+                newInputData[k].aliasList.push({ id: value.id, name: newName });
+              }
             }
           }
         }
