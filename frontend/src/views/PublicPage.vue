@@ -1,5 +1,17 @@
 <template>
   <div>
+    Data:
+    {{
+      Math.round((timings.httpReplyEnd - timings.start) * 100) / 100 +
+      ";" +
+      Math.round((timings.generateDataEnd - timings.start) * 100) / 100 +
+      ";" +
+      0 +
+      ";" +
+      Math.round((timings.httpReplyEnd - timings.generateDataEnd) * 100) / 100 +
+      ";" +
+      JSON.stringify(timings.models)
+    }}
     <LoadingOverlay v-if="pageLoading" />
     <div v-if="!page.loadSuccess && !pageLoading">
       Die aufgerufene Seite kann nicht geladen werden. Bitte versuchen Sie es
@@ -61,7 +73,13 @@
           :key="index.id"
         >
           <v-row>
-            <v-col v-if="page.layout === 'DOUBLE'" class="half-image" xs="12" sm="12" md="6">
+            <v-col
+              v-if="page.layout === 'DOUBLE'"
+              class="half-image"
+              xs="12"
+              sm="12"
+              md="6"
+            >
               <!-- TODO: Make this a div -->
               <div
                 class="preview-image"
@@ -180,7 +198,12 @@ import {
   generateDataFromResponse,
 } from "@shared/helper/connection";
 import { ParamParser, paramParser } from "@shared/helper/paramParser";
-import { defaultParamGenerator, toBase64, scaleToSize, readSize } from "@shared/helper/utility";
+import {
+  defaultParamGenerator,
+  toBase64,
+  scaleToSize,
+  readSize,
+} from "@shared/helper/utility";
 
 export default {
   created() {
@@ -228,6 +251,12 @@ export default {
       projectParsers: {},
       previewImage: "",
       topLevelInputMap: {},
+      timings: {
+        start: undefined,
+        generateDataEnd: undefined,
+        httpReplyEnd: undefined,
+        models: [],
+      },
     };
   },
   components: {
@@ -272,13 +301,22 @@ export default {
   },
   methods: {
     submitAll() {
+      this.timings.start = performance.now();
       this.replyInfo = undefined;
       this.serverReply = {};
       this.loading = true;
       let elements = Object.keys(this.page.projects).length;
+      this.timings.generateDataEnd = performance.now();
       for (const [ObjKey, value] of Object.entries(this.page.projects)) {
+        let start = performance.now();
         this.submit(value).finally(() => {
+          let end = performance.now();
+          this.timings.models.push({
+            name: value.yaml.name,
+            time: Math.round((end - start) * 100) / 100,
+          });
           if (--elements <= 0) {
+            this.timings.httpReplyEnd = performance.now();
             this.loading = false;
             if (Object.keys(this.serverReply).length < 1) {
               this.replyInfo =
@@ -367,17 +405,19 @@ export default {
           )
         ];
       if (objFile) {
-        toBase64(objFile).then((e) => {
-          this.previewImage = e;
-          return e;
-        })
-        .then(e => readSize(e))
-        .then(e => {
-          const size = scaleToSize(e, 400);
-          console.log(size);
-        }).catch((e) => {
-          console.log(e);
-        });
+        toBase64(objFile)
+          .then((e) => {
+            this.previewImage = e;
+            return e;
+          })
+          .then((e) => readSize(e))
+          .then((e) => {
+            const size = scaleToSize(e, 400);
+            console.log(size);
+          })
+          .catch((e) => {
+            console.log(e);
+          });
       }
     },
   },
