@@ -1,5 +1,17 @@
 <template>
   <div>
+    Data:
+    {{
+      Math.round((timings.httpReplyEnd - timings.start) * 100) / 100 +
+      ";" +
+      Math.round((timings.generateDataEnd - timings.start) * 100) / 100 +
+      ";" +
+      Math.round((timings.webSocketReplyEnd - timings.generateDataEnd) * 100) /  100 +
+      ";" +
+      Math.round((timings.httpReplyEnd - timings.webSocketReplyEnd) * 100) / 100 +
+      ";" + 
+      JSON.stringify(timings.models)
+    }}
     <LoadingOverlay v-if="pageLoading" />
     <div v-if="!page.loadSuccess && !pageLoading">
       Die aufgerufene Seite kann nicht geladen werden. Bitte versuchen Sie es
@@ -223,8 +235,9 @@ export default {
       // todo subscribe again
       this.wsClient.subscribe("/topic/upload", (payload) => {
         const message = JSON.parse(payload.body);
-        if(message.success) {
-          console.log("got response from server...")
+        if (message.success) {
+          console.log("got response from server...");
+          this.timings.webSocketReplyEnd = performance.now();
           this.handleUploadAfterCache(message.id);
         } else {
           console.log("Fatal error during cache upload...");
@@ -277,6 +290,13 @@ export default {
       previewImage: "",
       topLevelInputMap: {},
       wsClient: undefined,
+      timings: {
+        start: undefined,
+        generateDataEnd: undefined,
+        webSocketReplyEnd: undefined,
+        httpReplyEnd: undefined,
+        models: []
+      },
     };
   },
   components: {
@@ -288,9 +308,9 @@ export default {
   computed: {
     getNamesForTopLEvelInput() {
       let obj = {};
-      for(const [key, value] of Object.entries(this.topLevelInputMap)) {
+      for (const [key, value] of Object.entries(this.topLevelInputMap)) {
         obj[key] = {};
-        for(const inner of value) {
+        for (const inner of value) {
           obj[key][inner.id] = inner.name;
         }
       }
@@ -332,10 +352,12 @@ export default {
   },
   methods: {
     submitAll() {
+      this.timings.start = performance.now();
       // web socket request
       this.generateWebSocketData(Object.values(this.page.projects)).then(
         (data) => {
-          this.wsClient.send("/app/upload", {}, JSON.stringify(data))
+          this.timings.generateDataEnd = performance.now();
+          this.wsClient.send("/app/upload", {}, JSON.stringify(data));
         }
       );
     },
@@ -347,8 +369,12 @@ export default {
 
       // classic http request
       for (const [ObjKey, value] of Object.entries(this.page.projects)) {
+        let start = performance.now();
         this.submit(value, cacheId).finally(() => {
+        let end = performance.now();
+        this.timings.models.push({name: value.yaml.name, time: Math.round((end - start) * 100) / 100});
           if (--elements <= 0) {
+            this.timings.httpReplyEnd = performance.now();
             this.loading = false;
             if (Object.keys(this.serverReply).length < 1) {
               this.replyInfo =
@@ -376,9 +402,10 @@ export default {
         ...newInputData,
       };
 
-
-      for(const topLevelValue of Object.values(this.getNamesForTopLEvelInput)) {
-        if(this.inputData[topLevelValue[value.id]] instanceof File) {
+      for (const topLevelValue of Object.values(
+        this.getNamesForTopLEvelInput
+      )) {
+        if (this.inputData[topLevelValue[value.id]] instanceof File) {
           delete this.inputData[topLevelValue[value.id]];
         }
       }
