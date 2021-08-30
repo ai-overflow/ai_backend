@@ -378,14 +378,15 @@ export default {
       };
 
 
+      var shallowInputCopy = Object.assign({}, this.inputData);
       for(const topLevelValue of Object.values(this.getNamesForTopLEvelInput)) {
-        if(this.inputData[topLevelValue[value.id]] instanceof File) {
-          delete this.inputData[topLevelValue[value.id]];
+        if(shallowInputCopy[topLevelValue[value.id]] instanceof File) {
+          delete shallowInputCopy[topLevelValue[value.id]];
         }
       }
 
-      paramParser.input = this.inputData;
-      this.projectParsers[value.id].input = this.inputData;
+      paramParser.input = shallowInputCopy;
+      this.projectParsers[value.id].input = shallowInputCopy;
 
       return proxyRequest(
         "/api/v1/public/proxy/",
@@ -442,9 +443,9 @@ export default {
         newInputData[nk].aliasList = [];
         for (let [k, v] of Object.entries(this.inputData)) {
           if (k === nk) {
-            if (this.inputData[k] instanceof File) {
+            if (!!this.inputData[k] && this.inputData[k] instanceof File) {
               newInputData[nk].base64Data = await resizeFile(
-                newInputData[nk].base64Data,
+                this.inputData[k],
                 500
               );
 
