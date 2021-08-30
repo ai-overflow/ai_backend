@@ -207,6 +207,7 @@ import {
   toBase64,
   scaleToSize,
   readSize,
+  resizeFile,
 } from "@shared/helper/utility";
 
 import SockJS from "sockjs-client";
@@ -382,7 +383,6 @@ export default {
           delete this.inputData[topLevelValue[value.id]];
         }
       }
-      console.log(this.inputData);
 
       paramParser.input = this.inputData;
       this.projectParsers[value.id].input = this.inputData;
@@ -433,9 +433,7 @@ export default {
       }
       return newInputData;
     },
-    // TODO: Websockets
     async generateInputDataFromTopLevelWithoutDuplicates(values) {
-      // Error: duplicates excpects an array
       if (!Array.isArray(values)) return {};
 
       let newInputData = {};
@@ -445,7 +443,10 @@ export default {
         for (let [k, v] of Object.entries(this.inputData)) {
           if (k === nk) {
             if (this.inputData[k] instanceof File) {
-              newInputData[nk].base64Data = await toBase64(this.inputData[k]);
+              newInputData[nk].base64Data = await resizeFile(
+                newInputData[nk].base64Data,
+                500
+              );
 
               for (let value of values) {
                 let newName = nv
@@ -494,7 +495,6 @@ export default {
           .then((e) => readSize(e))
           .then((e) => {
             const size = scaleToSize(e, 400);
-            console.log(size);
           })
           .catch((e) => {
             console.log(e);
