@@ -444,10 +444,11 @@ export default {
         for (let [k, v] of Object.entries(this.inputData)) {
           if (k === nk) {
             if (!!this.inputData[k] && this.inputData[k] instanceof File) {
-              newInputData[nk].base64Data = await resizeFile(
+              /*newInputData[nk].base64Data = await resizeFile(
                 this.inputData[k],
                 500
-              );
+              );*/
+              newInputData[nk].base64Data = await toBase64(this.inputData[k]);
 
               for (let value of values) {
                 let newName = nv
@@ -459,7 +460,6 @@ export default {
           }
         }
       }
-      //todo: wait for promise to resolve
       return newInputData;
     },
     parseIterator(str) {
