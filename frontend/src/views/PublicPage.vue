@@ -94,7 +94,7 @@
               ></div>
               <!--<img :src="previewImage" alt="" class="preview-image" :ref="`showCaseImage_${index.id.replaceAll('-', '_')}`" />-->
             </v-col>
-            <v-col xs="12" sm="12" md="6">
+            <v-col xs="12" sm="12" :md="page.layout === 'DOUBLE' ? 6 : 12">
               <div class="pa-5">
                 <div
                   v-for="[inputName, inputItem] of Object.entries(
