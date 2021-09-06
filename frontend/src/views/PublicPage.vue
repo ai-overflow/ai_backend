@@ -9,52 +9,58 @@
     <v-alert v-if="replyInfo" border="left" type="info" dark text class="ma-10">
       {{ replyInfo }}
     </v-alert>
-    <div v-if="page.loadSuccess && !pageLoading">
-      <h2
-        v-if="
-          !this.$route.query.showTitle ||
-          this.$route.query.showTitle.toLowerCase() !== 'false'
-        "
-      >
-        {{ page.title }}
-      </h2>
-      <p
-        v-if="
-          !this.$route.query.showDescription ||
-          this.$route.query.showDescription.toLowerCase() !== 'false'
-        "
-      >
-        {{ page.description }}
-      </p>
-      <div v-for="[name, item] of Object.entries(topLevelInputs)" :key="name">
-        <h4>{{ parseParams(item.label) || name }}</h4>
-        <InputGenerator
-          :type-info="item"
-          v-model="inputData[name]"
-          @change="TopLevelInputListener"
-        />
-      </div>
+    <div v-if="page.loadSuccess && !pageLoading" class="top-level-container">
       <div>
-        <v-btn
-          @click="() => submitAll()"
-          :loading="loading"
-          v-if="Object.keys(this.topLevelInputs).length > 1"
-          >Senden</v-btn
+        <h2
+          v-if="
+            !this.$route.query.showTitle ||
+            this.$route.query.showTitle.toLowerCase() !== 'false'
+          "
         >
+          {{ page.title }}
+        </h2>
+        <p
+          v-if="
+            !this.$route.query.showDescription ||
+            this.$route.query.showDescription.toLowerCase() !== 'false'
+          "
+        >
+          {{ page.description }}
+        </p>
+        <div v-for="[name, item] of Object.entries(topLevelInputs)" :key="name">
+          <h4>{{ parseParams(item.label) || name }}</h4>
+          <InputGenerator
+            :type-info="item"
+            v-model="inputData[name]"
+            @change="TopLevelInputListener"
+          />
+        </div>
+        <div>
+          <v-btn
+            @click="() => submitAll()"
+            :loading="loading"
+            v-if="Object.keys(this.topLevelInputs).length > 1"
+            >Senden</v-btn
+          >
+        </div>
+      </div>
+      <div v-if="serverReply && Object.keys(serverReply).length > 0">
+        <v-tabs v-model="tab" align-with-title>
+          <v-tab
+            v-for="index in this.page.projects.filter(
+              (e) => !!serverReply[e.id]
+            )"
+            :key="index.id"
+          >
+            {{ index.yaml.name }}
+          </v-tab>
+        </v-tabs>
       </div>
     </div>
     <div
       v-if="serverReply && Object.keys(serverReply).length > 0"
-      class="mt-10"
+      class="mt-10 model-content"
     >
-      <v-tabs v-model="tab" align-with-title>
-        <v-tab
-          v-for="index in this.page.projects.filter((e) => !!serverReply[e.id])"
-          :key="index.id"
-        >
-          {{ index.yaml.name }}
-        </v-tab>
-      </v-tabs>
       <v-tabs-items v-model="tab">
         <v-tab-item
           v-for="index in this.page.projects.filter((e) => !!serverReply[e.id])"
@@ -224,8 +230,8 @@ export default {
       // todo subscribe again
       this.wsClient.subscribe("/topic/upload", (payload) => {
         const message = JSON.parse(payload.body);
-        if(message.success) {
-          console.log("got response from server...")
+        if (message.success) {
+          console.log("got response from server...");
           this.handleUploadAfterCache(message.id);
         } else {
           console.log("Fatal error during cache upload...");
@@ -289,9 +295,9 @@ export default {
   computed: {
     getNamesForTopLEvelInput() {
       let obj = {};
-      for(const [key, value] of Object.entries(this.topLevelInputMap)) {
+      for (const [key, value] of Object.entries(this.topLevelInputMap)) {
         obj[key] = {};
-        for(const inner of value) {
+        for (const inner of value) {
           obj[key][inner.id] = inner.name;
         }
       }
@@ -336,7 +342,7 @@ export default {
       // web socket request
       this.generateWebSocketData(Object.values(this.page.projects)).then(
         (data) => {
-          this.wsClient.send("/app/upload", {}, JSON.stringify(data))
+          this.wsClient.send("/app/upload", {}, JSON.stringify(data));
         }
       );
     },
@@ -377,10 +383,11 @@ export default {
         ...newInputData,
       };
 
-
       var shallowInputCopy = Object.assign({}, this.inputData);
-      for(const topLevelValue of Object.values(this.getNamesForTopLEvelInput)) {
-        if(shallowInputCopy[topLevelValue[value.id]] instanceof File) {
+      for (const topLevelValue of Object.values(
+        this.getNamesForTopLEvelInput
+      )) {
+        if (shallowInputCopy[topLevelValue[value.id]] instanceof File) {
           delete shallowInputCopy[topLevelValue[value.id]];
         }
       }
@@ -526,5 +533,14 @@ export default {
   max-width: 100%;
   position: sticky;
   top: 0;
+}
+.top-level-container {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  /* width: 100%; */
+  padding: 1px;
+  box-shadow: 0 4px 4px -4px grey;
+  background: #ffffff;
 }
 </style>
