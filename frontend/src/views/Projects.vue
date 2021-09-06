@@ -99,7 +99,7 @@
                       <v-icon> mdi-pause </v-icon>
                     </v-btn>
                     <v-btn
-                      @click="startContainer(item.id)"
+                      @click="startContainer(item.id, item.yaml.name)"
                       small
                       plain
                       icon
@@ -306,7 +306,7 @@ export default {
     },
   },
   methods: {
-    startContainer(id) {
+    startContainer(id, containerName) {
       this.errorMessage = undefined;
       this.$set(this.statusLoading, id, true);
       DockerService.startContainer(id)
@@ -325,7 +325,8 @@ export default {
         .catch((e) => {
           this.errorMessage =
             e.response?.data?.message ??
-            "An unknown error occured while starting a container";
+            "An unknown error occured while starting container \"" + containerName + "\"" + "\nError Message: ";
+             this.$set(this.statusLoading, id, false);
         });
     },
     stopContainer(id) {

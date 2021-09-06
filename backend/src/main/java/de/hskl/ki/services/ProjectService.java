@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -105,6 +106,7 @@ public class ProjectService {
         gitService.deleteGitHistory(dir);
 
         try {
+            addReadme(projectInfo, dir);
             moveConfigToRoot(dir);
 
             var config = dlConfigYamlReader.readDlConfig(dir);
@@ -118,6 +120,7 @@ public class ProjectService {
                 if(activateModelOrDelete(models.get()))
                     projectInfo.setActiveModels(models.get());
             }
+
         } catch (AIException e) {
             deleteProjectAfterException(dir, e.getMessage());
             throw new AIException("Error in Project " + dir + ": " + e.getMessage(), ProjectService.class);
@@ -126,6 +129,20 @@ public class ProjectService {
             throw new AIException("There was an error during project generation: " + e.getMessage(), ProjectService.class);
         }
         return projectInfo;
+    }
+
+    private void addReadme(Project projectInfo, Path dir) {
+        var file = Utility.findFileCaseInsensitive(dir.toFile(), "readme.md");
+        if(file.isEmpty()) {
+            return;
+        }
+
+        try {
+            var str = Files.readString(file.get().toPath());
+            projectInfo.setReadme(str);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private boolean activateModelOrDelete(List<String> models) {
@@ -177,7 +194,22 @@ public class ProjectService {
         yaml.setName(changes.getName());
         yaml.setDescription(changes.getDescription());
         project.setYaml(yaml);
+
         projectRepository.save(project);
+    }
+
+    public String loadDescriptionFromReadme(String id) {
+        var project = getProjectById(id);
+        if(project.getReadme() == null || project.getReadme().isEmpty()) {
+            addReadme(project, Path.of(project.getProjectPath()));
+        }
+
+        var yaml = project.getYaml();
+        yaml.setDescription(project.getReadme());
+        project.setYaml(yaml);
+        projectRepository.save(project);
+
+        return project.getReadme();
     }
 
     public void removeTritonModels(String id) {

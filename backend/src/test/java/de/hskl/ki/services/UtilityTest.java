@@ -63,4 +63,18 @@ class UtilityTest {
         Utility.replaceRootWithSubfolder(tempDir, other);
         assertTrue(tempDir.resolve(fileName).toFile().exists());
     }
+
+    @Test
+    void findFileName(@TempDir Path tempDir) throws IOException {
+        var fileName = "README.md";
+
+        if(!tempDir.resolve(fileName).toFile().createNewFile())
+            fail("failed to create config file");
+
+        var file = Utility.findFileCaseInsensitive(tempDir.toFile(), "readme.md");
+        if(file.isEmpty())
+            fail("File not found");
+
+        assertEquals(file.get(), tempDir.resolve(fileName).toFile());
+    }
 }

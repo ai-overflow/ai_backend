@@ -18,6 +18,7 @@ public class ProxyFormRequest {
     private byte[] dataBinary;
     private String contentType;
     private RequestMethods method;
+    private String cacheId;
 
     public ProxyFormRequest() {
     }
@@ -68,6 +69,10 @@ public class ProxyFormRequest {
         return dataBinary;
     }
 
+    public void setDataBinary(byte[] dataBinary) {
+        this.dataBinary = dataBinary;
+    }
+
     public void setDataBinary(MultipartFile file) throws IOException {
         dataBinary = file.getBytes();
     }
@@ -88,6 +93,14 @@ public class ProxyFormRequest {
         this.method = method;
     }
 
+    public String getCacheId() {
+        return cacheId;
+    }
+
+    public void setCacheId(String cacheId) {
+        this.cacheId = cacheId;
+    }
+
     @Override
     public String toString() {
         return "ProxyFormRequest{" +
@@ -98,6 +111,7 @@ public class ProxyFormRequest {
                 ", dataBinary=" + (dataBinary != null ? Arrays.toString(Arrays.copyOfRange(dataBinary, 0, 50)) : null) +
                 ", contentType='" + contentType + '\'' +
                 ", method='" + method + '\'' +
+                ", cacheId='" + cacheId + '\'' +
                 '}';
     }
 }

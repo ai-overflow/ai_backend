@@ -79,7 +79,7 @@
           <v-row class="mt-0">
             <v-col class="pt-0 mt-0">
               <v-checkbox
-              class="mt-0"
+                class="mt-0"
                 v-model="reloadFromGit"
                 label="Reload project if URL has been changed"
               ></v-checkbox>
@@ -92,6 +92,13 @@
                 label="Description"
                 v-model="projectInfo.yaml.description"
               ></v-textarea>
+            </v-col>
+          </v-row>
+          <v-row class="mt-0">
+            <v-col class="pt-0 mt-0 mb-10">
+              <v-btn color="primary" @click="loadDescriptionFromReadme"
+                >Get Description from Readme</v-btn
+              >
             </v-col>
           </v-row>
           <v-row>
@@ -207,7 +214,7 @@ export default {
       submitLoading: false,
       errorMessage: undefined,
       activeModelIgnoreUpdate: false,
-      reloadFromGit: true
+      reloadFromGit: true,
     };
   },
   created() {
@@ -253,7 +260,7 @@ export default {
         repoUrl: this.projectInfo.gitUrl,
         name: this.projectInfo.yaml.name,
         description: this.projectInfo.yaml.description,
-        reloadFromGit: this.reloadFromGit
+        reloadFromGit: this.reloadFromGit,
       };
 
       ProjectService.updateProject(this.$route.params.id, value)
@@ -293,6 +300,15 @@ export default {
         .then((e) => {
           this.projectInfo.yaml.tritonEnabled = false;
           this.projectInfo.activeModels = [];
+        });
+    },
+    loadDescriptionFromReadme() {
+      ProjectService.getDescriptionFromReadme(this.projectInfo.id)
+        .catch((e) => {
+          this.errorMessage = e.response.data?.message;
+        })
+        .then((e) => {
+          this.projectInfo.yaml.description = e.data;
         });
     },
   },

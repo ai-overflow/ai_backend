@@ -62,6 +62,11 @@ public class ProjectResource {
         return ResponseEntity.ok("ok");
     }
 
+    @PutMapping("project/{id}/loadReadme")
+    public ResponseEntity<String> loadDescriptionFromReadme(@PathVariable String id) {
+        return ResponseEntity.ok(projectService.loadDescriptionFromReadme(id));
+    }
+
     @PutMapping("project/{id}")
     public ResponseEntity<String> updateProject(@PathVariable String id, @RequestBody ProjectChangeRequest changes) {
         projectService.updateProject(id, changes);

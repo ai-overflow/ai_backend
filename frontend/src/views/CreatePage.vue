@@ -4,16 +4,35 @@
       {{ $route.params.id !== "create" ? page.title : "Neue Seite erstellen" }}
     </h2>
     <v-container v-if="$route.params.id !== 'create'">
-      <v-text-field
-        :value="'<iframe src=\'' + iframeSrc + '\' />'"
+      <v-row class="pb-0">
+        <v-col class="pb-0"
+          ><v-checkbox v-model="iframe.showTitle" label="Show Title"
+        /></v-col>
+        <v-col class="pb-0"
+          ><v-checkbox
+            v-model="iframe.showDescription"
+            label="Show Description"
+        /></v-col>
+      </v-row>
+      <v-textarea
+        :value="
+          '<iframe\n' +
+          '\tsrc=\'' +
+          iframeSrc +
+          '\'\n' +
+          '\tstyle=\'width: 100%; height: 1000px; border: none\'\n' +
+          '\tclass=\'project-iframe\'\n' +
+          '></iframe>'
+        "
         label="HTML"
         readonly
+        @focus="$event.target.select()"
       />
       <v-expansion-panels multiple>
         <v-expansion-panel>
           <v-expansion-panel-header>Example</v-expansion-panel-header>
           <v-expansion-panel-content>
-            <iframe :src="iframeSrc" title="example" class="example-iframe" />
+            <iframe :src="iframeSrc" title="example" class="example-iframe" style="width: 600px" />
           </v-expansion-panel-content>
         </v-expansion-panel>
       </v-expansion-panels>
@@ -179,6 +198,10 @@ export default {
   data() {
     return {
       descriptionLimit: 60,
+      iframe: {
+        showTitle: true,
+        showDescription: true,
+      },
       page: {
         description: "",
         title: "",
@@ -302,7 +325,17 @@ export default {
           subPath = subPath.substr(0, subPath.length - 1);
       }
 
-      return baseUrl + subPath + "/public/page/" + this.$route.params.id;
+      return (
+        baseUrl +
+        subPath +
+        "/public/page/" +
+        this.$route.params.id +
+        "?showTitle=" +
+        this.iframe.showTitle +
+        "&showDescription=" +
+        this.iframe.showDescription +
+        "&embedded=true"
+      );
     },
   },
   watch: {
