@@ -105,7 +105,7 @@
                 <div
                   v-for="[inputName, inputItem] of Object.entries(
                     index.yaml.input
-                  ).filter((e) => !Object.keys(topLevelInputs).includes(e[0]))"
+                  ).filter((e) => !topLevelInputNames.includes(e[0]))"
                   :key="inputName"
                 >
                   <h4>{{ inputItem.label || inputName }}</h4>
@@ -336,6 +336,9 @@ export default {
       });
       return el[0].v;
     },
+    topLevelInputNames() {
+      return Object.values(this.page.topLevelInput).flat();
+    }
   },
   methods: {
     submitAll() {
