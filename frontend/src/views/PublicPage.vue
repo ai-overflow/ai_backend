@@ -105,7 +105,7 @@
                 <div
                   v-for="[inputName, inputItem] of Object.entries(
                     index.yaml.input
-                  ).filter((e) => !Object.keys(topLevelInputs).includes(e[0]))"
+                  ).filter((e) => !topLevelInputNames.includes(e[0]))"
                   :key="inputName"
                 >
                   <h4>{{ inputItem.label || inputName }}</h4>
@@ -336,20 +336,25 @@ export default {
       });
       return el[0].v;
     },
+    topLevelInputNames() {
+      return Object.values(this.page.topLevelInput).flat();
+    }
   },
   methods: {
     submitAll() {
+      this.loading = true;
       // web socket request
       this.generateWebSocketData(Object.values(this.page.projects)).then(
         (data) => {
           this.wsClient.send("/app/upload", {}, JSON.stringify(data));
         }
-      );
+      ).catch((e) => {
+        this.loading = false;
+      });
     },
     handleUploadAfterCache(cacheId) {
       this.replyInfo = undefined;
       this.serverReply = {};
-      this.loading = true;
       let elements = Object.keys(this.page.projects).length;
 
       // classic http request

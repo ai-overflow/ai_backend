@@ -49,4 +49,9 @@ export default Vue.extend({
 html {
   overflow: auto;
 }
+ @media (max-width: 1024px) {
+   .container {
+     max-width: 100%;
+   }
+ }
 </style>
