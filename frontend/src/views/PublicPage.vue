@@ -407,6 +407,8 @@ export default {
         cacheId
       ).then((e) => {
         let content = generateDataFromResponse(e);
+        if(Object.values(content).every(x => x === null || x === '' || (Array.isArray(x) && x.length === 0))) return;
+
         let el = {};
         el[value.yaml.entryPoint] = {
           success: true,

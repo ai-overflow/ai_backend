@@ -13,13 +13,13 @@ public class Service {
     private List<String> expose;
     private List<Object> volumes;
     private String command;
-    private Map<String, String> environment;
+    private List<String> environment;
     private String restart;
     private String hostname;
     private List<String> networks;
     private final Map<String, Object> ulimits;
 
-    public Service(String image, Object build, List<String> ports, List<String> expose, List<Object> volumes, String command, Map<String, String> environment, String restart, String hostname, List<String> networks, Map<String, Object> ulimits) {
+    public Service(String image, Object build, List<String> ports, List<String> expose, List<Object> volumes, String command, List<String> environment, String restart, String hostname, List<String> networks, Map<String, Object> ulimits) {
         this.image = image;
         this.build = build;
         this.ports = ports;
@@ -73,11 +73,11 @@ public class Service {
         this.command = command;
     }
 
-    public Map<String, String> getEnvironment() {
+    public List<String> getEnvironment() {
         return environment;
     }
 
-    public void setEnvironment(Map<String, String> environment) {
+    public void setEnvironment(List<String> environment) {
         this.environment = environment;
     }
 

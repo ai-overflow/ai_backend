@@ -33,6 +33,7 @@ public class CustomExceptionResource {
         if(springProperties.hasEnvironment("dev")) {
             e.printStackTrace();
         }
+
         return new ErrorDTO(e.getMessage());
     }
 

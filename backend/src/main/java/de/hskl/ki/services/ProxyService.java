@@ -74,7 +74,8 @@ public class ProxyService {
                 throw new AIException("Request not found", ProxyService.class);
             }
 
-            fillProjectData(formRequest, connection.get());
+            if(formRequest.getData() != null)
+                fillProjectData(formRequest, connection.get());
 
             url = new URL(parseUrl(tmpUrl, project.get()));
         } catch (MalformedURLException e) {
@@ -121,6 +122,8 @@ public class ProxyService {
     }
 
     private void fillProjectData(ProxyFormRequest formRequest, YamlConnection connection) {
+        assert(formRequest.getData() != null);
+
         //TODO: move up
         String pattern = "\\{\\{input\\.(.*?)}}";
         Pattern r = Pattern.compile(pattern);
