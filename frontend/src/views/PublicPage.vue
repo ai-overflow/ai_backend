@@ -46,6 +46,12 @@
       </div>
       <div v-if="serverReply && Object.keys(serverReply).length > 0">
         <v-tabs v-model="tab" align-with-title>
+          <v-tab v-if="loading" :size="10" :width="3" disabled>
+            <v-progress-circular
+              indeterminate
+              color="primary"
+            ></v-progress-circular>
+          </v-tab>
           <v-tab
             v-for="index in this.page.projects.filter(
               (e) => !!serverReply[e.id]
@@ -83,24 +89,37 @@
           </v-row>
           <v-row>
             <v-col
-              v-if="page.layout === 'DOUBLE'"
+              v-if="needsPreviewImage(page, index)"
               class="half-image"
               xs="12"
               sm="12"
               md="6"
+              lg="6"
+              xl="6"
             >
               <!-- TODO: Make this a div -->
-              <div
+              <!-- <div
                 class="preview-image"
                 :ref="`showCaseImage_${index.id.replaceAll('-', '_')}`"
                 :style="{
                   backgroundImage: 'url(' + previewImage + ')',
                   backgroundSize: 'cover',
                 }"
-              ></div>
-              <!--<img :src="previewImage" alt="" class="preview-image" :ref="`showCaseImage_${index.id.replaceAll('-', '_')}`" />-->
+              ></div> -->
+              <img
+                :src="previewImage"
+                alt=""
+                class="preview-image"
+                :ref="`showCaseImage_${index.id.replaceAll('-', '_')}`"
+              />
             </v-col>
-            <v-col xs="12" sm="12" :md="page.layout === 'DOUBLE' ? 6 : 12">
+            <v-col
+              xs="12"
+              sm="12"
+              :xl="needsPreviewImage(page, index) ? 6 : 12"
+              :lg="needsPreviewImage(page, index) ? 6 : 12"
+              :md="needsPreviewImage(page, index) ? 6 : 12"
+            >
               <div class="pa-5">
                 <div
                   v-for="[inputName, inputItem] of Object.entries(
@@ -338,19 +357,19 @@ export default {
     },
     topLevelInputNames() {
       return Object.values(this.page.topLevelInput).flat();
-    }
+    },
   },
   methods: {
     submitAll() {
       this.loading = true;
       // web socket request
-      this.generateWebSocketData(Object.values(this.page.projects)).then(
-        (data) => {
+      this.generateWebSocketData(Object.values(this.page.projects))
+        .then((data) => {
           this.wsClient.send("/app/upload", {}, JSON.stringify(data));
-        }
-      ).catch((e) => {
-        this.loading = false;
-      });
+        })
+        .catch((e) => {
+          this.loading = false;
+        });
     },
     handleUploadAfterCache(cacheId) {
       this.replyInfo = undefined;
@@ -407,7 +426,13 @@ export default {
         cacheId
       ).then((e) => {
         let content = generateDataFromResponse(e);
-        if(Object.values(content).every(x => x === null || x === '' || (Array.isArray(x) && x.length === 0))) return;
+        if (
+          Object.values(content).every(
+            (x) =>
+              x === null || x === "" || (Array.isArray(x) && x.length === 0)
+          )
+        )
+          return;
 
         let el = {};
         el[value.yaml.entryPoint] = {
@@ -489,10 +514,18 @@ export default {
         }
       });
     },
+    needsPreviewImage(page, index) {
+      return (
+        page.layout === "DOUBLE" ||
+        !Object.values(index.yaml.output)
+          .map((v) => v.type.toLowerCase())
+          .includes("polygon")
+      );
+    },
   },
   watch: {
     inputData: function () {
-      if (!this.page.layout || this.page.layout !== "DOUBLE") return;
+      //if (!this.page.layout || this.page.layout !== "DOUBLE") return;
 
       const objFile =
         this.inputData[
