@@ -3,6 +3,8 @@ package de.hskl.ki.models.proxy;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import de.hskl.ki.services.jackson.ProxyFormRequestDeserializer;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -16,6 +18,7 @@ public class ProxyFormRequest {
     private Map<String, String> headerMap = new HashMap<>();
     private String data;
     private byte[] dataBinary;
+    private String dataName;
     private String contentType;
     private RequestMethods method;
     private String cacheId;
@@ -101,6 +104,14 @@ public class ProxyFormRequest {
         this.cacheId = cacheId;
     }
 
+    public String getDataName() {
+        return dataName;
+    }
+
+    public void setDataName(String dataName) {
+        this.dataName = dataName;
+    }
+
     @Override
     public String toString() {
         return "ProxyFormRequest{" +
@@ -109,6 +120,7 @@ public class ProxyFormRequest {
                 ", headerMap=" + headerMap +
                 ", data='" + data + '\'' +
                 ", dataBinary=" + (dataBinary != null ? Arrays.toString(Arrays.copyOfRange(dataBinary, 0, 50)) : null) +
+                ", dataName=" + dataName + '\'' +
                 ", contentType='" + contentType + '\'' +
                 ", method='" + method + '\'' +
                 ", cacheId='" + cacheId + '\'' +
