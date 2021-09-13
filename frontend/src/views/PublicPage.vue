@@ -46,12 +46,6 @@
       </div>
       <div v-if="serverReply && Object.keys(serverReply).length > 0">
         <v-tabs v-model="tab" align-with-title>
-          <v-tab v-if="loading" :size="10" :width="3" disabled>
-            <v-progress-circular
-              indeterminate
-              color="primary"
-            ></v-progress-circular>
-          </v-tab>
           <v-tab
             v-for="index in this.page.projects.filter(
               (e) => !!serverReply[e.id]
@@ -59,6 +53,12 @@
             :key="index.id"
           >
             {{ index.yaml.name }}
+          </v-tab>
+          <v-tab v-if="loading" :size="10" :width="3" disabled>
+            <v-progress-circular
+              indeterminate
+              color="primary"
+            ></v-progress-circular>
           </v-tab>
         </v-tabs>
       </div>
